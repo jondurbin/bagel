@@ -1,0 +1,32 @@
+from tqdm import tqdm
+from loguru import logger
+from datasets import Dataset, load_dataset
+from bagel.datasets.util import as_conversation
+
+CONFIDENCE = 2
+
+
+def load_data():
+    """belebele training split."""
+    data = []
+    dataset = load_dataset("facebook/belebele")
+    for split in dataset:
+        logger.info(f"Loading belebele train split -- {split}")
+        for item in tqdm(dataset[split]):
+            instruction = "\n".join(
+                [
+                    item["flores_passage"],
+                    item["question"],
+                ]
+            )
+            data.append(
+                as_conversation(
+                    instruction, item[f"mc_answer{item['correct_answer_num']}"]
+                )
+            )
+            data[-1]["category"] = split
+    return Dataset.from_list(data)
+
+
+if __name__ == "__main__":
+    print(load_data())
