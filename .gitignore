@@ -1,3 +1,4 @@
+*.parquet
 *.state
 config.yaml
 characters
