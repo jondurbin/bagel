@@ -59,3 +59,18 @@ def as_conversation(instruction, response, system=None):
             "conversations"
         ]
     return result
+
+
+def map_conv_format(item):
+    """Map role to from, and content to value."""
+    conv = [
+        {
+            "from": turn.get("role", turn.get("from")),
+            "value": turn.get("content", turn.get("value")),
+        }
+        for turn in item["conversation"]
+    ]
+    return {
+        **{k: v for k, v in item.items() if k not in ("conversation", "conversations")},
+        **{"conversations": conv},
+    }

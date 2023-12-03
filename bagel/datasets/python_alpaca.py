@@ -10,7 +10,7 @@ def load_data():
     """Python alpaca."""
     data = []
     logger.info("Loading python alpaca...")
-    for item in tqdm(load_dataset("Vezora/Tested-188k-Python-Alpaca", split="train")):
+    for item in tqdm(load_dataset("Vezora/Tested-22k-Python-Alpaca", split="train")):
         if has_refusal(item["output"]):
             continue
         data.append(as_conversation(item["instruction"], item["output"]))
