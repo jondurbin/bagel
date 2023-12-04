@@ -11,6 +11,7 @@ REFUSALS = [
         "large language",
         "as an? (ai|generative language|gpt|bot)",
         "illegal and dangerous",
+        "important to note",
         "i do(n't| not) (possess|have|exhibit) (personal|consciousness|subjective)",
         "personal (feelings|thoughts|emotions|desires|experiences|goals|objective|belief)",
         "(can('t| ?not)|w(on't|will not)|unable.?) (\\w+\\s)+(with (that|your)|your \\w+|provide)",
