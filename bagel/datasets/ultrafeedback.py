@@ -5,7 +5,7 @@ from bagel.datasets.util import get_uid, has_refusal
 CONFIDENCE = 2
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """ultrafeedback dataset for DPO."""
     logger.info("Loading ultrafeedback dataset...")
     dataset = load_dataset(
@@ -21,6 +21,9 @@ def load_data():
     data = []
     for item in dataset:
         uid = get_uid(item["chosen"][0]["content"])
+        if uid in known_uids:
+            continue
+        known_uids.add(uid)
         data.append(
             {
                 "id": uid,

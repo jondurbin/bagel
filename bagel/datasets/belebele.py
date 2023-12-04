@@ -6,7 +6,7 @@ from bagel.datasets.util import as_conversation
 CONFIDENCE = 2
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """belebele training split."""
     data = []
     dataset = load_dataset("facebook/belebele")
@@ -19,11 +19,13 @@ def load_data():
                     item["question"],
                 ]
             )
-            data.append(
-                as_conversation(
-                    instruction, item[f"mc_answer{item['correct_answer_num']}"]
-                )
+            as_conv = as_conversation(
+                instruction, item[f"mc_answer{item['correct_answer_num']}"]
             )
+            if as_conv["id"] in known_uids:
+                continue
+            known_uids.add(as_conv["id"])
+            data.append(as_conv)
             data[-1]["category"] = split
     return Dataset.from_list(data)
 

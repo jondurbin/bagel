@@ -8,7 +8,7 @@ from bagel.datasets.util import map_conv_format, get_uid, has_refusal
 CONFIDENCE = 2
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """lmsys 1 million chat dataset."""
     logger.info("Loading lmsys-chat-1m gpt-4 dataset...")
     dataset = load_dataset("lmsys/lmsys-chat-1m", split="train")
@@ -74,9 +74,11 @@ def load_data():
         inputs = "\n".join(
             [turn["content"] for turn in item["conversation"] if turn["role"] == "user"]
         )
-        save_item = map_conv_format(
-            {"id": get_uid(inputs), "conversation": item["conversation"]}
-        )
+        uid = get_uid(inputs)
+        if uid in known_uids:
+            continue
+        known_uids.add(uid)
+        save_item = map_conv_format({"id": uid, "conversation": item["conversation"]})
         save_item["chosen"] = None
         save_item["rejected"] = None
         if item["digest"] not in digests or len(item["conversation"]) != 2:

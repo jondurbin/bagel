@@ -6,7 +6,7 @@ from bagel.datasets.util import as_conversation
 CONFIDENCE = 3
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """BoolQ train split."""
     data = []
     logger.info("Loading BoolQ train split...")
@@ -21,7 +21,11 @@ def load_data():
             ]
         )
         answer = str(item["answer"]).lower()
-        data.append(as_conversation(question, answer))
+        as_conv = as_conversation(question, answer)
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

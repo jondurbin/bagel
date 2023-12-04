@@ -7,7 +7,7 @@ from bagel.datasets.util import as_conversation
 CONFIDENCE = 2
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """DROP training split."""
     logger.info("Loading DROP train split...")
     data = []
@@ -17,13 +17,15 @@ def load_data():
             ordered.reverse()
         instruction = "\n".join(ordered)
         answer = ", ".join([val for val in item["answers_spans"]["spans"]])
-        data.append(
-            as_conversation(
-                instruction,
-                answer,
-                system="You are a helpful assistant who answers as briefly as possible.",
-            )
+        as_conv = as_conversation(
+            instruction,
+            answer,
+            system="You are a helpful assistant who answers as briefly as possible.",
         )
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

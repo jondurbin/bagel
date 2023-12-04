@@ -7,7 +7,7 @@ from bagel.datasets.util import as_conversation
 CONFIDENCE = 3
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """piqa training split."""
     logger.info("Loading piqa train split...")
     data = []
@@ -27,7 +27,11 @@ def load_data():
             answer = (
                 f'A. {item["sol1"]}' if item["label"] == 0 else f'B. {item["sol2"]}'
             )
-        data.append(as_conversation(instruction, answer))
+        as_conv = as_conversation(instruction, answer)
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

@@ -7,7 +7,7 @@ from bagel.datasets.util import get_uid, has_refusal
 CONFIDENCE = 1
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """Synthia v1.3 dataset."""
     logger.info("Loading Synthia-v1.3 dataset...")
     dataset = load_dataset("migtissera/Synthia-v1.3")
@@ -39,16 +39,14 @@ def load_data():
                 role = "human" if not role.strip() or "USER" in role else "gpt"
                 conv.append({"from": role, "value": content})
             conv.append({"from": "gpt", "value": item["response"]})
-        data.append(
-            {
-                "id": get_uid(
-                    "\n".join(
-                        [turn["value"] for turn in conv if turn["from"] == "human"]
-                    )
-                ),
-                "conversations": conv,
-            }
+        uid = get_uid(
+            (item.get("system") or "")
+            + "\n".join([turn["value"] for turn in conv if turn["from"] == "human"])
         )
+        if uid in known_uids:
+            continue
+        known_uids.add(uid)
+        data.append({"id": uid, "conversations": conv})
     return Dataset.from_list(data).filter(
         lambda item: not has_refusal(
             "\n".join([turn["value"] for turn in item["conversations"]])

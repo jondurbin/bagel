@@ -28,7 +28,7 @@ BOOKS = [
 ]
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """Project Gutenberg, by chapter."""
     data = []
     for title, book_id in BOOKS:
@@ -56,6 +56,7 @@ def load_data():
                         "source": f"gutenberg {title}",
                     }
                 )
+                known_uids.add(data[-1]["id"])
         os.chdir(og_dir)
     return Dataset.from_list(data)
 

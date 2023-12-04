@@ -3,21 +3,15 @@ from loguru import logger
 from datasets import Dataset, load_dataset
 from bagel.datasets.util import as_conversation
 
-CONFIDENCE = 1
+CONFIDENCE = 3
 
 
 def load_data(known_uids=set([])):
-    """spider train split."""
+    """MathInstruct training split."""
+    logger.info("Loading MathInstruct train split...")
     data = []
-    logger.info("Loading spider train split...")
-    for item in tqdm(load_dataset("spider", split="train")):
-        question = "\n".join(
-            [
-                "Write a SQL query for the following:",
-                item["question"],
-            ]
-        )
-        as_conv = as_conversation(question, item["query"])
+    for item in tqdm(load_dataset("TIGER-Lab/MathInstruct", split="train")):
+        as_conv = as_conversation(item["instruction"], item["output"])
         if as_conv["id"] in known_uids:
             continue
         known_uids.add(as_conv["id"])

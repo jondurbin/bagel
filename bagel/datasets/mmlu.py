@@ -8,7 +8,7 @@ CONFIDENCE = 3
 CHOICES = ["A", "B", "C", "D", "E", "F", "G"]
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """MMLU training split."""
     data = []
     logger.info("Loading MMLU train split...")
@@ -30,7 +30,11 @@ def load_data():
         if random.random() <= 0.5:
             question = "Answer with only the letter of the answer.\n" + question
             answer = CHOICES[item["answer"]]
-        data.append(as_conversation(question, answer))
+        as_conv = as_conversation(question, answer)
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

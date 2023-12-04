@@ -14,7 +14,7 @@ BAD = [
 ]
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """SquadV2 train split."""
     data = []
     logger.info("Loading SQuAD2.0 train split...")
@@ -30,7 +30,11 @@ def load_data():
             ]
         )
         answer = item["answers"]["text"][0] if item["answers"]["text"] else bad
-        data.append(as_conversation(question, answer))
+        as_conv = as_conversation(question, answer)
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

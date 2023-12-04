@@ -6,7 +6,7 @@ from bagel.datasets.util import has_refusal, get_uid
 CONFIDENCE = 2
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """SlimOrca dataset."""
     logger.info("Loading SlimOrca dataset...")
     dataset = load_dataset("Open-Orca/SlimOrca")["train"].filter(
@@ -16,19 +16,7 @@ def load_data():
     )
     data = []
     for item in tqdm(dataset):
-        data.append(
-            {
-                "conversations": [
-                    {
-                        key: value
-                        for key, value in turn.items()
-                        if key in ("from", "value")
-                    }
-                    for turn in item["conversations"]
-                ]
-            }
-        )
-        data[-1]["id"] = get_uid(
+        uid = get_uid(
             "\n".join(
                 [
                     turn["value"]
@@ -36,6 +24,22 @@ def load_data():
                     if turn["from"] == "human"
                 ]
             )
+        )
+        if uid in known_uids:
+            continue
+        known_uids.add(uid)
+        data.append(
+            {
+                "id": uid,
+                "conversations": [
+                    {
+                        key: value
+                        for key, value in turn.items()
+                        if key in ("from", "value")
+                    }
+                    for turn in item["conversations"]
+                ],
+            }
         )
     return Dataset.from_list(data)
 

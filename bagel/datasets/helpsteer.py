@@ -5,7 +5,7 @@ from bagel.datasets.util import get_uid, has_refusal
 CONFIDENCE = 2
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """HelpSteer dataset for DPO."""
     logger.info("Loading HelpSteer dataset...")
     dataset = load_dataset("nvidia/HelpSteer", split="train").filter(
@@ -33,6 +33,9 @@ def load_data():
     for uid, responses in options.items():
         if len(responses) < 2:
             continue
+        if uid in known_uids:
+            continue
+        known_uids.add(uid)
         chosen = None
         chosen_score = 0
         rejected = None

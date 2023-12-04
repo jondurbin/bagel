@@ -8,7 +8,7 @@ from bagel.datasets.util import as_conversation
 CONFIDENCE = 3
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """OpenBookQA training split."""
     logger.info("Loading OpenBookQA train split...")
     data = []
@@ -31,7 +31,11 @@ def load_data():
         else:
             idx = item["choices"]["label"].index(item["answerKey"])
             answer = item["answerKey"] + " " + item["choices"]["text"][idx]
-        data.append(as_conversation(instruction, answer))
+        as_conv = as_conversation(instruction, answer)
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

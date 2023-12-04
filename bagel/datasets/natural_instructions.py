@@ -6,7 +6,7 @@ from bagel.datasets.util import as_conversation
 CONFIDENCE = 1
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """Natural instructions train split."""
     data = []
     logger.info("Loading Natural Instructions train split...")
@@ -18,7 +18,11 @@ def load_data():
     )["train"]
     for item in tqdm(dataset):
         question = "\n".join([item["definition"], item["inputs"]])
-        data.append(as_conversation(question, item["targets"]))
+        as_conv = as_conversation(question, item["targets"])
+        if as_conv["id"] in known_uids:
+            continue
+        known_uids.add(as_conv["id"])
+        data.append(as_conv)
     return Dataset.from_list(data)
 
 

@@ -8,7 +8,7 @@ from bagel.datasets.util import get_uid
 CONFIDENCE = 1
 
 
-def load_data():
+def load_data(known_uids=set([])):
     """Airoboros 3.1 dataset (with unalignment)."""
     logger.info("Loading airoboros-3.1 dataset...")
     dataset = load_dataset(
@@ -45,6 +45,9 @@ def load_data():
                 ]
             )
         )
+        if new_id in known_uids:
+            continue
+        known_uids.add(new_id)
         if (
             item.get("category") in ("roleplay", "writing")
             and item["conversations"][1]["from"] == "human"
