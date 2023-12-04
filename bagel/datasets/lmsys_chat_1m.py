@@ -103,7 +103,7 @@ def load_data(known_uids=set([])):
             gpt4_data.append(save_item)
             continue
         logger.success(f"Found alternative: {digests[item['digest']]}")
-        response = save_item.pop("conversations")[-1]["content"]
+        response = save_item.pop("conversations")[-1]["value"]
         save_item["chosen"] = response
         save_item["rejected"] = dataset[digests[item["digest"]]["idx"]]["conversation"][
             -1

@@ -20,8 +20,8 @@ def load_data(known_uids=set([])):
             "\n".join(
                 [
                     turn["value"]
-                    for turn in data[-1]["conversations"]
-                    if turn["from"] == "human"
+                    for turn in item["conversations"]
+                    if turn["from"] in ("user", "human")
                 ]
             )
         )
