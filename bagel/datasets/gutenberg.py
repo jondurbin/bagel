@@ -1,7 +1,9 @@
 import os
 import glob
+import backoff
 import requests
 import tempfile
+from time import sleep
 from loguru import logger
 from chapterize.chapterize import Book
 from datasets import Dataset
@@ -28,6 +30,13 @@ BOOKS = [
 ]
 
 
+@backoff.on_exception(backoff.fibo, (Exception,), max_value=90, max_tries=10)
+def download_book(session, book_id):
+    result = session.get(f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt")
+    assert result.status_code == 200, result.text
+    return result.text
+
+
 def load_data(known_uids=set([])):
     """Project Gutenberg, by chapter."""
     data = []
@@ -39,12 +48,16 @@ def load_data(known_uids=set([])):
             os.chdir(tempdir)
             title_id = get_uid(title)
             input_path = os.path.join(tempdir, f"{title_id}.txt")
+            text = None
             with open(input_path, "w") as outfile:
-                result = session.get(
-                    f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt"
-                )
-                assert result.status_code == 200
-                outfile.write(result.text)
+                try:
+                    text = download_book(session, book_id)
+                except Exception:
+                    logger.error(f"Unable to download {title}")
+                if text:
+                    outfile.write(text)
+            if not text:
+                continue
             Book(input_path, False, False)
             for path in glob.glob(os.path.join(tempdir, f"{title_id}-chapters/*.txt")):
                 with open(path) as infile:
@@ -57,6 +70,7 @@ def load_data(known_uids=set([])):
                     }
                 )
                 known_uids.add(data[-1]["id"])
+        sleep(5)
         os.chdir(og_dir)
     return Dataset.from_list(data)
 
