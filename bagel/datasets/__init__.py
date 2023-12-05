@@ -12,8 +12,10 @@ import mathinstruct
 import mmlu
 import natural_instructions
 import openbookqa
+import orca_dpo_pairs
 import piqa
 import python_alpaca
+import rosetta_code
 import slimorca
 import spider
 import squad_v2
@@ -38,23 +40,23 @@ def decontaminate(dataset):
     model = AutoModel.from_pretrained(
         "jinaai/jina-embeddings-v2-small-en", trust_remote_code=True, device_map="auto"
     )
-    instruction_index = faiss.IndexFlatL2(512)
+    index = faiss.IndexFlatL2(512)
 
     # Index the benchmark datasets.
-    instruction_lengths = []
+    logger.info("Indexing Alpaca Eval test set...")
+    lengths = []
     alpaca_eval = json.loads(
         requests.get(
             "https://huggingface.co/datasets/tatsu-lab/alpaca_eval/raw/main/alpaca_eval.json"
         ).text
     )
-    logger.info("Indexing Alpaca Eval test set...")
     for item in tqdm(alpaca_eval):
-        instruction_index.add(
-            np.array([model.encode([item["instruction"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["instruction"]))
+        text = item["instruction"] + "\n" + item["output"]
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # MT-Bench.
+    logger.info("Indexing MT Bench test set...")
     mt_bench = [
         json.loads(line)
         for line in requests.get(
@@ -62,95 +64,114 @@ def decontaminate(dataset):
         ).text.splitlines()
         if line.strip()
     ]
-    logger.info("Indexing MT Bench test set...")
-    for item in tqdm(mt_bench):
-        instruction_index.add(
-            np.array([model.encode([item["turns"][0]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["turns"][0]))
+    mt_responses = [
+        json.loads(line)
+        for line in requests.get(
+            "https://raw.githubusercontent.com/lm-sys/FastChat/main/fastchat/llm_judge/data/mt_bench/reference_answer/gpt-4.jsonl"
+        ).text.splitlines()
+        if line.strip()
+    ]
+    by_q_id = {item["question_id"]: item["turns"] for item in mt_bench}
+    for item in mt_responses:
+        turns = []
+        for idx in range(len(item["choices"][0]["turns"])):
+            turns.append(by_q_id[item["question_id"]][idx])
+            turns.append(item["choices"][0]["turns"][idx])
+        by_q_id[item["question_id"]] = "\n".join(turns)
+    for _, text in tqdm(by_q_id.items()):
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # DROP.
     logger.info("Indexing DROP test set...")
     for item in tqdm(load_dataset("drop", split="validation")):
-        instruction_index.add(
-            np.array(
-                [
-                    model.encode(
-                        [item["passage"] + "\n" + item["question"]], max_length=4096
-                    )[0]
-                ]
-            )
+        response = (
+            item["answer_spans"]["spans"][0]
+            if (item.get("answer_spans") or {}).get("spans")
+            else ""
         )
-        instruction_lengths.append(len(item["passage"] + "\n" + item["question"]))
+        text = "\n".join([item["passage"], item["question"], response])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # Winogrande.
     logger.info("Indexing winogrande test set...")
-    for item in tqdm(load_dataset("winogrande", "winogrande_xl", split="test")):
-        instruction_index.add(
-            np.array([model.encode([item["sentence"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["sentence"]))
+    for item in tqdm(load_dataset("winogrande", "winogrande_xl", split="validation")):
+        text = "\n".join([item["sentence"], item[f"option{item['answer']}"]])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # MMLU
     logger.info("Indexing MMLU test set...")
     for item in tqdm(load_dataset("cais/mmlu", "all", split="test")):
-        instruction_index.add(
-            np.array([model.encode([item["question"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["question"]))
+        text = "\n".join([item["question"], item["choices"][item["answer"]]])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # TruthfulQA
     logger.info("Indexing TruthfulQA test set...")
     for item in tqdm(load_dataset("truthful_qa", "generation", split="validation")):
-        instruction_index.add(
-            np.array([model.encode([item["question"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["question"]))
+        text = "\n".join([item["question"], item["best_answer"]])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # GSM8K
     logger.info("Indexing GSM8K test set...")
     for item in tqdm(load_dataset("gsm8k", "main", split="test")):
-        instruction_index.add(
-            np.array([model.encode([item["question"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["question"]))
-
-    # Hellaswag
-    logger.info("Indexing Hellaswag test set...")
-    for item in tqdm(load_dataset("Rowan/hellaswag", split="test")):
-        instruction_index.add(
-            np.array([model.encode([item["ctx"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["ctx"]))
+        text = "\n".join([item["question"], item["answer"]])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # ARC Challenge
     logger.info("Indexing ARC-Challenge test set...")
-    for item in tqdm(load_dataset("ai2_arc", "ARC-Challenge", split="test")):
-        instruction_index.add(
-            np.array([model.encode([item["question"]], max_length=4096)[0]])
+    for item in tqdm(load_dataset("ai2_arc", "ARC-Challenge", split="validation")):
+        # We'll add two versions of the data here, one multiple-choice, one plain.
+        instruction = "\n".join(
+            [
+                item["question"],
+                "\n".join(
+                    [
+                        f"{item['choices']['label'][idx]}. {item['choices']['text'][idx]}"
+                        for idx in range(len(item["choices"]["label"]))
+                    ]
+                ),
+            ]
         )
-        instruction_lengths.append(len(item["question"]))
+        answer = item["answerKey"]
+        text = "\n".join([instruction, answer])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
+
+        # Plain.
+        text = "\n".join(
+            [
+                item["question"],
+                item["choices"]["text"][
+                    item["choices"]["label"].index(item["answerKey"])
+                ],
+            ]
+        )
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # HumanEval - 2nd pass -- the bulk of our coding instructions are from
     # the python_alpaca module, which has it's own filtering.
     logger.info("Indexing HumanEval test set...")
     for item in tqdm(load_dataset("openai_humaneval", split="test")):
-        instruction_index.add(
-            np.array([model.encode([item["prompt"]], max_length=4096)[0]])
-        )
-        instruction_lengths.append(len(item["prompt"]))
+        text = "\n".join([item["prompt"], item["canonical_solution"]])
+        index.add(np.array([model.encode([text], max_length=4096)[0]]))
+        lengths.append(len(text))
 
     # Now, the tedious part.  Go through our entire > 1m dataset and remove items...
     logger.info(
         "Removing contaminated values -- this is going to take a long time, go find a snack or something..."
     )
-    keep = []
-    for item in tqdm(dataset):
+
+    def _contamination_free(item):
         convs = item.get("conversations", item.get("chosen"))
         if not convs:
             # plain text
-            keep.append(item)
-            continue
+            return True
 
         # Find the instruction.
         instruction = None
@@ -159,29 +180,27 @@ def decontaminate(dataset):
                 instruction = turn["value"]
                 break
         if not instruction:
-            continue
+            return True
         embeddings = np.array([model.encode([instruction], max_length=4096)[0]])
-        distances, indices = instruction_index.search(embeddings, k=1)
+        distances, indices = index.search(embeddings, k=1)
         distances = distances[0].tolist()
         indices = indices[0].tolist()
         if not distances:
-            keep.append(item)
-        else:
-            found_index = indices[0]
-            # Not sure what's actually best here, but I'm going with:
-            # cos sim > 0.03 or > 15% diff in length = not contamination.
-            if (
-                distances[0] >= 0.03
-                or abs(
-                    (len(instruction) - instruction_lengths[found_index])
-                    / (len(instruction) or 1)
-                )
-                > 0.15
-            ):
-                keep.append(item)
-            else:
-                logger.warning(f"Likely contamination: {item}")
-    return Dataset.from_list(keep)
+            return True
+        found_index = indices[0]
+        # Not sure what's actually best here, but I'm going with:
+        # cos sim > 0.03 or > 15% diff in length = not contamination.
+        if (
+            distances[0] >= 0.03
+            or abs((len(instruction) - lengths[found_index]) / (len(instruction) or 1))
+            > 0.15
+        ):
+            return True
+
+        logger.warning(f"Likely contamination: {item}")
+        return False
+
+    return dataset.filter(_contamination_free)
 
 
 def load_datasets():
@@ -224,6 +243,7 @@ if __name__ == "__main__":
     dataset = load_datasets()
     print(dataset)
     dataset.to_parquet("bagel-raw-v0.1.parquet")
+    dataset = Dataset.from_parquet("bagel-raw-v0.1.parquet")
     decontaminated = decontaminate(dataset)
     print(decontaminated)
     decontaminated.to_parquet("bagel-clean-v0.1.parquet")

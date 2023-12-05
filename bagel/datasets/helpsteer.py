@@ -61,7 +61,7 @@ def load_data(known_uids=set([])):
             data.append(
                 {
                     "id": uid,
-                    "chosen": chosen,
+                    "chosen": chosen["response"],
                     "rejected": rejected,
                     "conversations": None,
                 }
