@@ -41,10 +41,10 @@ def decontaminate(dataset):
         "jinaai/jina-embeddings-v2-small-en", trust_remote_code=True, device_map="auto"
     )
     index = faiss.IndexFlatL2(512)
+    lengths = []
 
     # Index the benchmark datasets.
     logger.info("Indexing Alpaca Eval test set...")
-    lengths = []
     alpaca_eval = json.loads(
         requests.get(
             "https://huggingface.co/datasets/tatsu-lab/alpaca_eval/raw/main/alpaca_eval.json"
@@ -166,41 +166,65 @@ def decontaminate(dataset):
     logger.info(
         "Removing contaminated values -- this is going to take a long time, go find a snack or something..."
     )
+    index = faiss.index_cpu_to_all_gpus(index)
 
-    def _contamination_free(item):
-        convs = item.get("conversations", item.get("chosen"))
+    # Filter for contamination, in batches -- if we don't use batches, the
+    # performance of faiss is quite slow, particularly on CPU.
+    remove = set([])
+    batch = []
+    dataset_size = len(dataset)
+    for dataset_idx in tqdm(range(dataset_size)):
+        item = dataset[dataset_idx]
+        if item.get("text"):
+            continue
+        if item.get("chosen"):
+            convs = [
+                {"from": "human", "value": item["prompt"]},
+                {"from": "gpt", "value": item["chosen"]},
+            ]
+        elif item.get("conversations"):
+            convs = item["conversations"]
         if not convs:
-            # plain text
-            return True
+            continue
 
-        # Find the instruction.
-        instruction = None
-        for turn in convs:
-            if turn.get("from") == "human":
-                instruction = turn["value"]
-                break
-        if not instruction:
-            return True
-        embeddings = np.array([model.encode([instruction], max_length=4096)[0]])
-        distances, indices = index.search(embeddings, k=1)
-        distances = distances[0].tolist()
-        indices = indices[0].tolist()
-        if not distances:
-            return True
-        found_index = indices[0]
-        # Not sure what's actually best here, but I'm going with:
-        # cos sim > 0.03 or > 15% diff in length = not contamination.
-        if (
-            distances[0] >= 0.03
-            or abs((len(instruction) - lengths[found_index]) / (len(instruction) or 1))
-            > 0.15
-        ):
-            return True
-
-        logger.warning(f"Likely contamination: {item}")
-        return False
-
-    return dataset.filter(_contamination_free)
+        # Get the text (instruction and response).
+        text = "\n".join(
+            [turn["value"] for turn in convs if turn.get("from") != "system"]
+        )
+        batch.append(
+            {
+                "text": text,
+                "id": item["id"],
+            }
+        )
+        if len(batch) == 1024 or dataset_idx == dataset_size - 1:
+            embeddings = np.array(
+                [
+                    model.encode([batch_item["text"]], max_length=4096)[0]
+                    for batch_item in batch
+                ]
+            )
+            distances, indices = index.search(embeddings, k=1)
+            for idx in range(len(batch)):
+                if not len(distances[idx]):
+                    continue
+                distance = distances[idx][0]
+                found_index = indices[idx][0]
+                # Not sure what's actually best here, but I'm going with:
+                # cos sim > 0.05 or > 20% diff in length = not contamination.
+                length_delta = abs(
+                    (len(batch[idx]["text"]) - lengths[found_index])
+                    / (len(batch[idx]["text"]) or 1)
+                )
+                if distance <= 0.05 and length_delta <= 0.20:
+                    logger.warning(f"Likely contamination: {batch[idx]['id']}")
+                    remove.add(batch[idx]["id"])
+            batch = []
+    filtered = dataset.filter(lambda item: item["id"] not in remove)
+    logger.success(
+        f"Original size: {dataset_size}, decontaminated size: {len(filtered)}"
+    )
+    return filtered
 
 
 def load_datasets():
@@ -240,10 +264,11 @@ def load_datasets():
 
 
 if __name__ == "__main__":
-    dataset = load_datasets()
-    print(dataset)
-    dataset.to_parquet("bagel-raw-v0.1.parquet")
+    # dataset = load_datasets()
+    # print(dataset)
+    # dataset.to_parquet("bagel-raw-v0.1.parquet")
     dataset = Dataset.from_parquet("bagel-raw-v0.1.parquet")
+    print(dataset)
     decontaminated = decontaminate(dataset)
     print(decontaminated)
-    decontaminated.to_parquet("bagel-clean-v0.1.parquet")
+    # decontaminated.to_parquet("bagel-clean-v0.1.parquet")

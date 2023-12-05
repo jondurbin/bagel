@@ -1,7 +1,9 @@
+backoff==2.2.1
 chapterize==0.1.6
 datasets==2.15.0
 requests==2.31.0
 loguru==0.7.2
 tqdm==4.66.1
-faiss-cpu==1.7.4
+accelerate==0.25.0
+faiss-gpu==1.7.2
 transformers==4.35.2

@@ -44,6 +44,9 @@ def as_conversation(instruction, response, system=None):
     result = {
         "id": get_uid(instruction),
         "text": None,
+        "chosen": None,
+        "rejected": None,
+        "prommpt": None,
         "conversations": [
             {
                 "from": "human",

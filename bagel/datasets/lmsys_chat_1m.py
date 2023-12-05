@@ -79,6 +79,7 @@ def load_data(known_uids=set([])):
             continue
         known_uids.add(uid)
         save_item = map_conv_format({"id": uid, "conversation": item["conversation"]})
+        save_item["prompt"] = None
         save_item["chosen"] = None
         save_item["rejected"] = None
         if item["digest"] not in digests or len(item["conversation"]) != 2:
@@ -103,7 +104,9 @@ def load_data(known_uids=set([])):
             gpt4_data.append(save_item)
             continue
         logger.success(f"Found alternative: {digests[item['digest']]}")
+        prompt = save_item["conversations"][0]["value"]
         response = save_item.pop("conversations")[-1]["value"]
+        save_item["prompt"] = prompt
         save_item["chosen"] = response
         save_item["rejected"] = dataset[digests[item["digest"]]["idx"]]["conversation"][
             -1

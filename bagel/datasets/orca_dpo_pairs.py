@@ -19,6 +19,7 @@ def load_data(known_uids=set([])):
         data.append(
             {
                 "id": get_uid(item["question"]),
+                "prompt": item["question"],
                 "chosen": item["chosen"],
                 "rejected": item["rejected"],
                 "conversations": None,
