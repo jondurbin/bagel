@@ -254,6 +254,7 @@ def load_datasets():
                     "source",
                     "text",
                     "conversations",
+                    "prompt",
                     "chosen",
                     "rejected",
                 )
@@ -264,11 +265,9 @@ def load_datasets():
 
 
 if __name__ == "__main__":
-    # dataset = load_datasets()
-    # print(dataset)
-    # dataset.to_parquet("bagel-raw-v0.1.parquet")
-    dataset = Dataset.from_parquet("bagel-raw-v0.1.parquet")
+    dataset = load_datasets()
     print(dataset)
+    dataset.to_parquet("bagel-raw-v0.1.parquet")
     decontaminated = decontaminate(dataset)
     print(decontaminated)
-    # decontaminated.to_parquet("bagel-clean-v0.1.parquet")
+    decontaminated.to_parquet("bagel-clean-v0.1.parquet")
