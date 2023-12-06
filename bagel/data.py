@@ -206,12 +206,13 @@ def format_io(tokenizer, dataset):
     # DPO.
     dpo = dataset.filter(lambda item: item.get("prompt"))
 
-    def _dpo_format(tokenizer, item, prompt_formatter):
+    def _dpo_format(tokenizer, item):
+        prompt_formatter = random.choice([alpaca_io, vicuna_io, chatml_io, llama2_io])
         io_format = prompt_formatter(
             tokenizer,
             {
                 "id": str(uuid.uuid4()),
-                "source": "dpo",
+                "source": item.get("source", "dpo"),
                 "conversations": [
                     {
                         "from": "human",
@@ -225,23 +226,24 @@ def format_io(tokenizer, dataset):
             },
         )
         return {
+            "source": item["source"],
             "prompt": io_format["input"],
             "chosen": item["chosen"],
             "rejected": item["rejected"],
         }
 
-    dpo = concatenate_datasets(
+    dpo = dpo.map(lambda item: _dpo_format(tokenizer, item)).remove_columns(
         [
-            dpo.map(lambda item: _dpo_format(tokenizer, item, alpaca_io)),
-            dpo.map(lambda item: _dpo_format(tokenizer, item, vicuna_io)),
-            dpo.map(lambda item: _dpo_format(tokenizer, item, chatml_io)),
-            dpo.map(lambda item: _dpo_format(tokenizer, item, llama2_io)),
+            col
+            for col in dpo.column_names
+            if col not in ("prompt", "chosen", "rejected", "source")
         ]
     )
 
     # Plain text.
     plain_text = dataset.filter(lambda item: item.get("text")).map(
         lambda item: {
+            "id": item["id"],
             "input": "",
             "output": item["text"],
             "source": item["source"],
@@ -251,8 +253,15 @@ def format_io(tokenizer, dataset):
         [
             col
             for col in plain_text.column_names
-            if col not in ("input", "output", "source")
+            if col not in ("id", "input", "output", "source")
         ]
+    ).map(
+        lambda item: {
+            "id": item["id"],
+            "input": item["input"],
+            "output": item["output"],
+            "source": f"{item['source']}_plain_text",
+        }
     )
 
     # Re-combine the expanded multi-turn with single-turn instructions.
@@ -266,19 +275,32 @@ def format_io(tokenizer, dataset):
             instructions.map(lambda item: chatml_io(tokenizer, item)),
             instructions.map(lambda item: llama2_io(tokenizer, item)),
         ]
-    ).remove_columns(["conversations"])
+    ).remove_columns(
+        [
+            col
+            for col in instructions.column_names
+            if col not in ("id", "input", "output", "source")
+        ]
+    )
 
     return (
-        instructions.class_encode_column("source"),
+        concatenate_datasets([instructions, plain_text]).class_encode_column("source"),
         dpo.class_encode_column("source"),
-        plain_text.class_encode_column("source"),
     )
 
 
 def load_train_test_split(
-    tokenizer, test_size=0.01, dpo_test_size=0.01, text_test_size=0.01
+    tokenizer,
+    test_size=0.01,
+    sft_test_size=0.01,
+    dpo_test_size=0.01,
 ):
     """Do all of the things - get the dataset, convert to I/O, train/test split."""
+    if os.path.exists("bagel-input-output-v0.1.parquet"):
+        return (
+            Dataset.from_parquet("bagel-input-output-v0.1.parquet"),
+            Dataset.from_parquet("bagel-dpo-v0.1.parquet"),
+        )
     dataset = None
     if os.path.exists("bagel-clean-v0.1.parquet"):
         dataset = Dataset.from_parquet("bagel-clean-v0.1.parquet")
@@ -293,22 +315,23 @@ def load_train_test_split(
             dataset.to_parquet("bagel-clean-v0.1.parquet")
 
     # Split the raw dataset into SFT data and DPO data.
-    instructions, dpo, plain_text = format_io(tokenizer, dataset)
+    sft, dpo = format_io(tokenizer, dataset)
+    sft = (
+        concatenate_datasets([instructions, plain_text])
+        .class_encode_column("source")
+        .train_test_split(
+            test_size=sft_test_size,
+            stratify_by_column="source",
+        )
+    )
+    dpo = dpo.class_encode_column("source").train_test_split(
+        test_size=dpo_test_size,
+        stratify_by_column="source",
+    )
+    sft.to_parquet("bagel-input-output-v0.1.parquet")
+    dpo.to_parquet("bagel-dpo-v0.1.parquet")
 
-    return {
-        "instructions": instructions.train_test_split(
-            test_size=test_size,
-            stratify_by_column="source",
-        ),
-        "dpo": dpo.train_test_split(
-            test_size=dpo_test_size,
-            stratify_by_column="source",
-        ),
-        "plain_text": plain_text.train_test_split(
-            test_size=text_test_size,
-            stratify_by_column="source",
-        ),
-    }
+    return sft, dpo
 
 
 if __name__ == "__main__":
