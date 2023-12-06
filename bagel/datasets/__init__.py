@@ -31,7 +31,7 @@ import numpy as np
 from tqdm import tqdm
 from loguru import logger
 from types import ModuleType
-from datasets import concatenate_datasets, load_dataset, Dataset
+from datasets import concatenate_datasets, load_dataset
 from transformers import AutoModel
 
 
@@ -51,7 +51,7 @@ def decontaminate(dataset):
         ).text
     )
     for item in tqdm(alpaca_eval):
-        text = item["instruction"] + "\n" + item["output"]
+        text = item["instruction"]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
@@ -64,61 +64,43 @@ def decontaminate(dataset):
         ).text.splitlines()
         if line.strip()
     ]
-    mt_responses = [
-        json.loads(line)
-        for line in requests.get(
-            "https://raw.githubusercontent.com/lm-sys/FastChat/main/fastchat/llm_judge/data/mt_bench/reference_answer/gpt-4.jsonl"
-        ).text.splitlines()
-        if line.strip()
-    ]
-    by_q_id = {item["question_id"]: item["turns"] for item in mt_bench}
-    for item in mt_responses:
-        turns = []
-        for idx in range(len(item["choices"][0]["turns"])):
-            turns.append(by_q_id[item["question_id"]][idx])
-            turns.append(item["choices"][0]["turns"][idx])
-        by_q_id[item["question_id"]] = "\n".join(turns)
-    for _, text in tqdm(by_q_id.items()):
+    for item in tqdm(mt_bench):
+        text = item["turns"][0]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
     # DROP.
     logger.info("Indexing DROP test set...")
     for item in tqdm(load_dataset("drop", split="validation")):
-        response = (
-            item["answer_spans"]["spans"][0]
-            if (item.get("answer_spans") or {}).get("spans")
-            else ""
-        )
-        text = "\n".join([item["passage"], item["question"], response])
+        text = "\n".join([item["passage"], item["question"]])
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
     # Winogrande.
     logger.info("Indexing winogrande test set...")
     for item in tqdm(load_dataset("winogrande", "winogrande_xl", split="validation")):
-        text = "\n".join([item["sentence"], item[f"option{item['answer']}"]])
+        text = item["sentence"]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
     # MMLU
     logger.info("Indexing MMLU test set...")
     for item in tqdm(load_dataset("cais/mmlu", "all", split="test")):
-        text = "\n".join([item["question"], item["choices"][item["answer"]]])
+        text = item["question"]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
     # TruthfulQA
     logger.info("Indexing TruthfulQA test set...")
     for item in tqdm(load_dataset("truthful_qa", "generation", split="validation")):
-        text = "\n".join([item["question"], item["best_answer"]])
+        text = item["question"]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
     # GSM8K
     logger.info("Indexing GSM8K test set...")
     for item in tqdm(load_dataset("gsm8k", "main", split="test")):
-        text = "\n".join([item["question"], item["answer"]])
+        text = item["question"]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
@@ -137,10 +119,8 @@ def decontaminate(dataset):
                 ),
             ]
         )
-        answer = item["answerKey"]
-        text = "\n".join([instruction, answer])
-        index.add(np.array([model.encode([text], max_length=4096)[0]]))
-        lengths.append(len(text))
+        index.add(np.array([model.encode([instruction], max_length=4096)[0]]))
+        lengths.append(len(instruction))
 
         # Plain.
         text = "\n".join(
@@ -158,7 +138,7 @@ def decontaminate(dataset):
     # the python_alpaca module, which has it's own filtering.
     logger.info("Indexing HumanEval test set...")
     for item in tqdm(load_dataset("openai_humaneval", split="test")):
-        text = "\n".join([item["prompt"], item["canonical_solution"]])
+        text = item["prompt"]
         index.add(np.array([model.encode([text], max_length=4096)[0]]))
         lengths.append(len(text))
 
@@ -177,23 +157,21 @@ def decontaminate(dataset):
         item = dataset[dataset_idx]
         if item.get("text"):
             continue
+        prompt = None
         if item.get("chosen"):
-            convs = [
-                {"from": "human", "value": item["prompt"]},
-                {"from": "gpt", "value": item["chosen"]},
-            ]
+            prompt = item["prompt"]
         elif item.get("conversations"):
-            convs = item["conversations"]
-        if not convs:
+            for turn in item["conversations"]:
+                if turn["from"] == "human":
+                    prompt = turn["value"]
+                    break
+        if not prompt:
             continue
 
-        # Get the text (instruction and response).
-        text = "\n".join(
-            [turn["value"] for turn in convs if turn.get("from") != "system"]
-        )
+        # Queue item in batch.
         batch.append(
             {
-                "text": text,
+                "text": prompt,
                 "id": item["id"],
             }
         )
