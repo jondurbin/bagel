@@ -291,9 +291,8 @@ def format_io(tokenizer, dataset):
 
 def load_train_test_split(
     tokenizer,
-    test_size=0.01,
-    sft_test_size=0.01,
-    dpo_test_size=0.01,
+    sft_test_size=0.0003,
+    dpo_test_size=0.02,
 ):
     """Do all of the things - get the dataset, convert to I/O, train/test split."""
     if os.path.exists("bagel-input-output-v0.1.parquet"):
@@ -316,13 +315,9 @@ def load_train_test_split(
 
     # Split the raw dataset into SFT data and DPO data.
     sft, dpo = format_io(tokenizer, dataset)
-    sft = (
-        concatenate_datasets([instructions, plain_text])
-        .class_encode_column("source")
-        .train_test_split(
-            test_size=sft_test_size,
-            stratify_by_column="source",
-        )
+    sft = sft.class_encode_column("source").train_test_split(
+        test_size=sft_test_size,
+        stratify_by_column="source",
     )
     dpo = dpo.class_encode_column("source").train_test_split(
         test_size=dpo_test_size,
