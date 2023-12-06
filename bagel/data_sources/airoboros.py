@@ -64,6 +64,7 @@ def load_data(known_uids=set([])):
                     data.append(
                         {
                             "id": new_id,
+                            "source": item["source"],
                             "prompt": item["conversations"][1]["value"],
                             "chosen": item["conversations"][2]["value"],
                             "rejected": by_instruction[key]["response"],

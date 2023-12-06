@@ -61,6 +61,7 @@ def load_data(known_uids=set([])):
             data.append(
                 {
                     "id": uid,
+                    "source": "helpsteer",
                     "prompt": item["prompt"],
                     "chosen": chosen["response"],
                     "rejected": rejected,

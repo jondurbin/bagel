@@ -79,6 +79,7 @@ def load_data(known_uids=set([])):
             continue
         known_uids.add(uid)
         save_item = map_conv_format({"id": uid, "conversation": item["conversation"]})
+        save_item["source"] = "lmsys_chat_1m"
         save_item["prompt"] = None
         save_item["chosen"] = None
         save_item["rejected"] = None
@@ -106,6 +107,7 @@ def load_data(known_uids=set([])):
         logger.success(f"Found alternative: {digests[item['digest']]}")
         prompt = save_item["conversations"][0]["value"]
         response = save_item.pop("conversations")[-1]["value"]
+        save_item["source"] = "lmsys_chat_1m"
         save_item["prompt"] = prompt
         save_item["chosen"] = response
         save_item["rejected"] = dataset[digests[item["digest"]]["idx"]]["conversation"][

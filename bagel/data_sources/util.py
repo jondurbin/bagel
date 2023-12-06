@@ -43,6 +43,7 @@ def as_conversation(instruction, response, system=None):
     """Helper to convert instruction/response pair to conversation format."""
     result = {
         "id": get_uid(instruction),
+        "source": None,
         "text": None,
         "chosen": None,
         "rejected": None,
