@@ -7,7 +7,7 @@ from time import sleep
 from loguru import logger
 from chapterize.chapterize import Book
 from datasets import Dataset
-from bagel.datasets.util import get_uid
+from .util import get_uid
 
 CONFIDENCE = 3
 BOOKS = [

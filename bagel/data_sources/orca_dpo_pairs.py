@@ -1,6 +1,6 @@
 from loguru import logger
 from datasets import load_dataset, Dataset
-from bagel.datasets.util import get_uid, has_refusal
+from .util import get_uid, has_refusal
 
 CONFIDENCE = 2
 

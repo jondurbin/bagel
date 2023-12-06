@@ -3,7 +3,7 @@ import hashlib
 from tqdm import tqdm
 from loguru import logger
 from datasets import Dataset, load_dataset
-from bagel.datasets.util import map_conv_format, get_uid, has_refusal
+from .util import map_conv_format, get_uid, has_refusal
 
 CONFIDENCE = 2
 

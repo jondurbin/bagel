@@ -1,29 +1,34 @@
 from tqdm import tqdm
 from loguru import logger
 from datasets import Dataset, load_dataset
-from bagel.datasets.util import as_conversation, has_refusal
+from .util import as_conversation
 
-CONFIDENCE = 1
+CONFIDENCE = 2
 
 
 def load_data(known_uids=set([])):
-    """Python alpaca."""
+    """RosettaCode data."""
+    logger.info("Loading RosettaCode train split...")
     data = []
-    logger.info("Loading python alpaca...")
     # Make sure we filter out humaneval entrites...
     human_eval = [
         item["canonical_solution"]
         for item in load_dataset("openai_humaneval", split="test")
     ]
-    for item in tqdm(load_dataset("Vezora/Tested-22k-Python-Alpaca", split="train")):
-        if has_refusal(item["output"]):
-            continue
-        if any([solution in item["output"] for solution in human_eval]) or any(
-            [item["output"] in solution for solution in human_eval]
+    for item in tqdm(load_dataset("cakiki/rosetta-code", split="train")):
+        instruction = "\n".join(
+            [
+                f"Create a solution in {item['language_name']} to the following:",
+                item["task_description"],
+            ]
+        )
+        code = item["code"]
+        if any([solution in code for solution in human_eval]) or any(
+            [code in solution for solution in human_eval]
         ):
             logger.warning("Rejecting humaneval contamination...")
             continue
-        as_conv = as_conversation(item["instruction"], item["output"])
+        as_conv = as_conversation(instruction, code)
         if as_conv["id"] in known_uids:
             continue
         known_uids.add(as_conv["id"])

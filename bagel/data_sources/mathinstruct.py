@@ -1,18 +1,17 @@
 from tqdm import tqdm
 from loguru import logger
 from datasets import Dataset, load_dataset
-from bagel.datasets.util import as_conversation
+from .util import as_conversation
 
 CONFIDENCE = 3
 
 
 def load_data(known_uids=set([])):
-    """Winogrande train split."""
+    """MathInstruct training split."""
+    logger.info("Loading MathInstruct train split...")
     data = []
-    logger.info("Loading winogrande train split...")
-    for item in tqdm(load_dataset("winogrande", "winogrande_xl", split="train")):
-        answer = item["option1"] if str(item["answer"]) == "1" else item["option2"]
-        as_conv = as_conversation(item["sentence"], answer)
+    for item in tqdm(load_dataset("TIGER-Lab/MathInstruct", split="train")):
+        as_conv = as_conversation(item["instruction"], item["output"])
         if as_conv["id"] in known_uids:
             continue
         known_uids.add(as_conv["id"])

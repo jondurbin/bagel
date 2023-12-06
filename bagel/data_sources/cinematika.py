@@ -2,7 +2,7 @@ import transformers
 from tqdm import tqdm
 from loguru import logger
 from datasets import load_dataset, Dataset
-from bagel.datasets.util import as_conversation, get_uid
+from .util import as_conversation, get_uid
 
 CONFIDENCE = 3
 

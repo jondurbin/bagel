@@ -3,7 +3,7 @@ import requests
 from tqdm import tqdm
 from loguru import logger
 from datasets import load_dataset, Dataset
-from bagel.datasets.util import get_uid
+from .util import get_uid
 
 CONFIDENCE = 1
 

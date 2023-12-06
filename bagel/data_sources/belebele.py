@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from loguru import logger
 from datasets import Dataset, load_dataset
-from bagel.datasets.util import as_conversation
+from .util import as_conversation
 
 CONFIDENCE = 2
 

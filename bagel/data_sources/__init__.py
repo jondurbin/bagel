@@ -1,27 +1,27 @@
-import ai2_arc
-import airoboros
-import apps
-import belebele
-import boolq
-import cinematika
-import drop
-import gutenberg
-import helpsteer
-import lmsys_chat_1m
-import mathinstruct
-import mmlu
-import natural_instructions
-import openbookqa
-import orca_dpo_pairs
-import piqa
-import python_alpaca
-import rosetta_code
-import slimorca
-import spider
-import squad_v2
-import synthia
-import ultrafeedback
-import winogrande
+from . import ai2_arc
+from . import airoboros
+from . import apps
+from . import belebele
+from . import boolq
+from . import cinematika
+from . import drop
+from . import gutenberg
+from . import helpsteer
+from . import lmsys_chat_1m
+from . import mathinstruct
+from . import mmlu
+from . import natural_instructions
+from . import openbookqa
+from . import orca_dpo_pairs
+from . import piqa
+from . import python_alpaca
+from . import rosetta_code
+from . import slimorca
+from . import spider
+from . import squad_v2
+from . import synthia
+from . import ultrafeedback
+from . import winogrande
 
 # Other imports.
 import json

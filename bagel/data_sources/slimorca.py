@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from loguru import logger
 from datasets import load_dataset, Dataset
-from bagel.datasets.util import has_refusal, get_uid
+from .util import has_refusal, get_uid
 
 CONFIDENCE = 2
 

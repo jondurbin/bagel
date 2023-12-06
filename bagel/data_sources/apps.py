@@ -1,34 +1,35 @@
+import json
 from tqdm import tqdm
 from loguru import logger
 from datasets import Dataset, load_dataset
-from bagel.datasets.util import as_conversation
+from .util import as_conversation
 
 CONFIDENCE = 2
 
 
 def load_data(known_uids=set([])):
-    """RosettaCode data."""
-    logger.info("Loading RosettaCode train split...")
+    """APPS training split."""
+    logger.info("Loading APPS train split...")
     data = []
     # Make sure we filter out humaneval entrites...
     human_eval = [
         item["canonical_solution"]
         for item in load_dataset("openai_humaneval", split="test")
     ]
-    for item in tqdm(load_dataset("cakiki/rosetta-code", split="train")):
+    for item in tqdm(load_dataset("codeparrot/apps", "all", split="train")):
         instruction = "\n".join(
             [
-                f"Create a solution in {item['language_name']} to the following:",
-                item["task_description"],
+                "Provide a python solution to the following:",
+                item["question"],
             ]
         )
-        code = item["code"]
-        if any([solution in code for solution in human_eval]) or any(
-            [code in solution for solution in human_eval]
+        first_solution = json.loads(item["solutions"])[0]
+        if any([solution in first_solution for solution in human_eval]) or any(
+            [first_solution in solution for solution in human_eval]
         ):
             logger.warning("Rejecting humaneval contamination...")
             continue
-        as_conv = as_conversation(instruction, code)
+        as_conv = as_conversation(instruction, first_solution)
         if as_conv["id"] in known_uids:
             continue
         known_uids.add(as_conv["id"])
