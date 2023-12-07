@@ -1,8 +1,8 @@
 # A bagel, with everything
 
-![bagel](resources/bagel.webp)
-
 The name of this project was shamelessly stolen from from Everything, Everywhere, All at Once.
+
+![bagel](resources/bagel.webp)
 
 ## Data selection.
 
