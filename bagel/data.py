@@ -206,8 +206,7 @@ def format_io(tokenizer, dataset):
     # DPO.
     dpo = dataset.filter(lambda item: item.get("prompt"))
 
-    def _dpo_format(tokenizer, item):
-        prompt_formatter = random.choice([alpaca_io, vicuna_io, chatml_io, llama2_io])
+    def _dpo_format(tokenizer, item, prompt_formatter):
         io_format = prompt_formatter(
             tokenizer,
             {
@@ -232,7 +231,14 @@ def format_io(tokenizer, dataset):
             "rejected": item["rejected"],
         }
 
-    dpo = dpo.map(lambda item: _dpo_format(tokenizer, item)).remove_columns(
+    dpo = concatenate_datasets(
+        [
+            dpo.map(lambda item: _dpo_format(tokenizer, item, alpaca_io)),
+            dpo.map(lambda item: _dpo_format(tokenizer, item, vicuna_io)),
+            dpo.map(lambda item: _dpo_format(tokenizer, item, chatml_io)),
+            dpo.map(lambda item: _dpo_format(tokenizer, item, llama2_io)),
+        ]
+    ).remove_columns(
         [
             col
             for col in dpo.column_names
@@ -291,14 +297,20 @@ def format_io(tokenizer, dataset):
 
 def load_train_test_split(
     tokenizer,
-    sft_test_size=0.0003,
+    sft_test_size=0.0006,
     dpo_test_size=0.02,
 ):
     """Do all of the things - get the dataset, convert to I/O, train/test split."""
     if os.path.exists("bagel-input-output-v0.1.parquet"):
         return (
-            Dataset.from_parquet("bagel-input-output-v0.1.parquet"),
-            Dataset.from_parquet("bagel-dpo-v0.1.parquet"),
+            Dataset.from_parquet("bagel-input-output-v0.1.parquet").train_test_split(
+                test_size=sft_test_size,
+                stratify_by_column="source",
+            ),
+            Dataset.from_parquet("bagel-dpo-v0.1.parquet").train_test_split(
+                test_size=dpo_test_size,
+                stratify_by_column="source",
+            ),
         )
     dataset = None
     if os.path.exists("bagel-clean-v0.1.parquet"):
@@ -315,6 +327,9 @@ def load_train_test_split(
 
     # Split the raw dataset into SFT data and DPO data.
     sft, dpo = format_io(tokenizer, dataset)
+    sft.to_parquet("bagel-input-output-v0.1.parquet")
+    dpo.to_parquet("bagel-dpo-v0.1.parquet")
+
     sft = sft.train_test_split(
         test_size=sft_test_size,
         stratify_by_column="source",
@@ -323,9 +338,6 @@ def load_train_test_split(
         test_size=dpo_test_size,
         stratify_by_column="source",
     )
-    sft.to_parquet("bagel-input-output-v0.1.parquet")
-    dpo.to_parquet("bagel-dpo-v0.1.parquet")
-
     return sft, dpo
 
 
