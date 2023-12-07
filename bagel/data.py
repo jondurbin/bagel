@@ -315,11 +315,11 @@ def load_train_test_split(
 
     # Split the raw dataset into SFT data and DPO data.
     sft, dpo = format_io(tokenizer, dataset)
-    sft = sft.class_encode_column("source").train_test_split(
+    sft = sft.train_test_split(
         test_size=sft_test_size,
         stratify_by_column="source",
     )
-    dpo = dpo.class_encode_column("source").train_test_split(
+    dpo = dpo.train_test_split(
         test_size=dpo_test_size,
         stratify_by_column="source",
     )
