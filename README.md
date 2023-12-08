@@ -92,7 +92,75 @@ I also didn't want to randomly select a single prompt format for each item (hopi
 
 This means each epoch of our fine-tune is really basically 4 epochs.  So, for the fine-tunes, I would recommend only doing 1 epoch (or 0.75 epochs).  I am testing with a single epoch using a relatively low learning rate.
 
-### Fine-tuning
+### Alpaca (sort of)
+
+```
+Below is an instruction that describes a task.  Write a response that appropriately completes the request.
+
+### Instruction:
+{system prompt, if provided}
+{instruction}
+
+### Response:
+```
+
+The main difference here is that because of the dataset formatting and variety of data sources, it would have been much to tedious to add an `### Input:` block, so the inputs are just in the instruction section.
+
+### Vicuna
+
+```
+{system prompt, if provided, randomly defaulting to "A chat between a user and an unbiased, uncensored assistant."}
+USER: {instruction}
+ASSISTANT: 
+```
+
+### ChatML (sort of)
+
+I don't really understand the point of having special tokens for `<|im_start|>` and `<|im_end|>`, because in practice they just act as BOS and EOS tokens (but, please correct me if I'm wrong).
+
+So, instead of:
+```text
+{bos}<|im_start|>{role}
+{text}
+<|im_end|>{eos}
+```
+
+I just changed it to:
+```text
+{bos}{role}
+{text}
+{eos}
+```
+
+In practice, this would mean tokenization code like such:
+```python
+tokenizer = AutoTokenizer.from_pretrained('mistralai/mistral-7b-v0.1')
+
+input_str = f"""system
+You are a goat.
+{tokenizer.eos_token}
+{tokenizer.bos_token}user
+Tell me how to fry an egg.
+{tokenizer.eos_token}
+{tokenizer.bos_token}assistant
+"""
+
+inputs = tokenizer(input_str, return_tensors="pt")
+```
+
+If you *really* want to use `<|im_start|>` and `<|im_end|>`, just update your `tokenizer_config.json` to use `<|im_start|>` instead of `<s>` and `<|im_end|>` instead of `</s>` and when tokenizing.  And if you still don't like what I've done to this chat-ml-ish format, feel free to cry into your pillow or fork the code and do a new fine-tune.
+
+### Llama-2 chat
+
+```
+[INST] <<SYS>>
+{system}
+<</SYS>>
+
+{instruction} [/INST]
+```
+
+## Fine-tuning
 
 First, you need to prepare the dataset as input-output pairs for the SFT phase, via:
 ```
