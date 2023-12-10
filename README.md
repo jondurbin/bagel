@@ -162,25 +162,27 @@ If you *really* want to use `<|im_start|>` and `<|im_end|>`, just update your `t
 
 ## Fine-tuning
 
-First, you need to prepare the dataset as input-output pairs for the SFT phase, via:
+First, you need to prepare the dataset as input-output pairs for the SFT phase, and prompt/chosen/rejected for DPO:
 ```
-python bagel/data.py
+python -m bagel.data
 ```
 
 Then, you'll have a DPO parquet and SFT parquet, which you can use to build a model.
 
-#### bagel-7b-v0.1
+### bagel-7b-v0.1
 
 This is a fine-tune of mistral-7b.
 
-I used my fork of qlora with full-weight training using the following script:
+
+#### SFT phase
+
 ```bash
 export BASE_DIR=/workspace
 export WANDB_API_KEY=[redacted]
 export WANDB_PROJECT=bagel-7b-v0.1
 
 # Run the pretraining.
-accelerate launch $BASE_DIR/qlora/train.py \
+accelerate launch -m bagel.tune.sft \
   --model_name_or_path $BASE_DIR/mistral-7b \
   --final_output_dir $BASE_DIR/$WANDB_PROJECT \
   --output_dir $BASE_DIR/$WANDB_PROJECT-workdir \
@@ -241,4 +243,33 @@ Deepspeed configuration:
     "allgather_bucket_size": 5e8
   }
 }
+```
+
+#### DPO phase
+
+```bash
+export BASE_DIR=/mnt/data
+export WANDB_API_KEY=[redacted]
+export WANDB_PROJECT=bagel-dpo-7b-v0.1
+
+accelerate launch -m bagel.tune.dpo \
+  --model_name_or_path bagel-7b-v0.1 \
+  --learning_rate 3e-7 \
+  --per_device_train_batch_size 2 \
+  --gradient_accumulation_steps 4 \
+  --max_length 4096 \
+  --max_prompt_length 1024 \
+  --max_target_length 3092 \
+  --num_train_epochs 3 \
+  --report_to wandb \
+  --gradient_checkpointing true \
+  --use_flash_attention_2 true \
+  --dataset $BASE_DIR/bagel/bagel-dpo-v0.1.parquet \
+  --eval_steps 5 \
+  --eval_dataset_size 0.03 \
+  --workdir $BASE_DIR/$WANDB_PROJECT-workdir \
+  --output_dir $BASE_DIR/$WANDB_PROJECT \
+  --deepspeed deepspeed.json \
+  --save_steps 25 \
+  --save_total_limit 5 \
 ```

@@ -295,22 +295,12 @@ def format_io(tokenizer, dataset):
     )
 
 
-def load_train_test_split(
-    tokenizer,
-    sft_test_size=0.0006,
-    dpo_test_size=0.02,
-):
-    """Do all of the things - get the dataset, convert to I/O, train/test split."""
+def get_or_create_datasets(tokenizer):
+    """Get or create the SFT/DPO datasets."""
     if os.path.exists("bagel-input-output-v0.1.parquet"):
         return (
-            Dataset.from_parquet("bagel-input-output-v0.1.parquet").train_test_split(
-                test_size=sft_test_size,
-                stratify_by_column="source",
-            ),
-            Dataset.from_parquet("bagel-dpo-v0.1.parquet").train_test_split(
-                test_size=dpo_test_size,
-                stratify_by_column="source",
-            ),
+            Dataset.from_parquet("bagel-input-output-v0.1.parquet"),
+            Dataset.from_parquet("bagel-dpo-v0.1.parquet"),
         )
     dataset = None
     if os.path.exists("bagel-clean-v0.1.parquet"):
@@ -329,18 +319,9 @@ def load_train_test_split(
     sft, dpo = format_io(tokenizer, dataset)
     sft.to_parquet("bagel-input-output-v0.1.parquet")
     dpo.to_parquet("bagel-dpo-v0.1.parquet")
-
-    sft = sft.train_test_split(
-        test_size=sft_test_size,
-        stratify_by_column="source",
-    )
-    dpo = dpo.train_test_split(
-        test_size=dpo_test_size,
-        stratify_by_column="source",
-    )
     return sft, dpo
 
 
 if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("mistralai/mistral-7b-v0.1")
-    print(load_train_test_split(tokenizer))
+    print(get_or_create_datasets(tokenizer))
