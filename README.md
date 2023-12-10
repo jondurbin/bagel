@@ -169,12 +169,9 @@ python -m bagel.data
 
 Then, you'll have a DPO parquet and SFT parquet, which you can use to build a model.
 
-### bagel-7b-v0.1
+### SFT phase
 
-This is a fine-tune of mistral-7b.
-
-
-#### SFT phase
+An example for mistral-7b:
 
 ```bash
 export BASE_DIR=/workspace
@@ -245,7 +242,9 @@ Deepspeed configuration:
 }
 ```
 
-#### DPO phase
+### DPO phase
+
+An example of the DPO phase for mistral-7b (requires first running the SFT):
 
 ```bash
 export BASE_DIR=/mnt/data
