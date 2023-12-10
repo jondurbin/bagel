@@ -11,21 +11,20 @@ def load_data(known_uids=set([])):
     dataset = load_dataset("Intel/orca_dpo_pairs", split="train").filter(
         lambda item: not has_refusal(item["chosen"])
     )
-
-    logger.info("Formatting...")
     data = []
     for item in dataset:
         # We don't care about the known UIDs here, since we are using it for DPO.
-        data.append(
-            {
-                "id": get_uid(item["question"]),
-                "source": "orca_dpo_pairs",
-                "prompt": item["question"],
-                "chosen": item["chosen"],
-                "rejected": item["rejected"],
-                "conversations": None,
-            }
-        )
+        if item["chosen"] != item["rejected"]:
+            data.append(
+                {
+                    "id": get_uid(item["question"]),
+                    "source": "orca_dpo_pairs",
+                    "prompt": item["question"],
+                    "chosen": item["chosen"],
+                    "rejected": item["rejected"],
+                    "conversations": None,
+                }
+            )
     return Dataset.from_list(data)
 
 

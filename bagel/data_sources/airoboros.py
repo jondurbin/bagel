@@ -41,7 +41,7 @@ def load_data(known_uids=set([])):
                 [
                     turn["value"]
                     for turn in item["conversations"]
-                    if turn["from"] == "human"
+                    if turn["from"] in ("human", "system")
                 ]
             )
         )

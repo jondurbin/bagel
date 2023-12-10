@@ -56,7 +56,7 @@ def load_data(known_uids=set([])):
                 if not rejected:
                     rejected = item["response"]
                     rejected_score = item["score"]
-        if chosen and rejected:
+        if chosen and rejected and chosen["response"] != rejected:
             logger.success(f"Found DPO pair: {chosen_score} vs {rejected_score}")
             data.append(
                 {

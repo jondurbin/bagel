@@ -15,6 +15,8 @@ def load_data(known_uids=set([])):
         and len(item["chosen"]) == 2
         and item["chosen"][1]["role"] == "assistant"
         and not has_refusal(item["chosen"][1]["content"])
+        and item["chosen"][1]["content"].lower().strip()
+        != item["rejected"][1]["content"].lower().strip()
     )
 
     logger.info("Formatting...")

@@ -104,16 +104,18 @@ def load_data(known_uids=set([])):
             logger.warning("Same response from rejected...")
             gpt4_data.append(save_item)
             continue
-        logger.success(f"Found alternative: {digests[item['digest']]}")
         prompt = save_item["conversations"][0]["value"]
+        rejected = dataset[digests[item["digest"]]["idx"]]["conversation"][-1][
+            "content"
+        ]
         response = save_item.pop("conversations")[-1]["value"]
-        save_item["source"] = "lmsys_chat_1m"
-        save_item["prompt"] = prompt
-        save_item["chosen"] = response
-        save_item["rejected"] = dataset[digests[item["digest"]]["idx"]]["conversation"][
-            -1
-        ]["content"]
-        dpo_pairs.append(save_item)
+        if response != rejected:
+            logger.success(f"Found alternative: {digests[item['digest']]}")
+            save_item["source"] = "lmsys_chat_1m"
+            save_item["prompt"] = prompt
+            save_item["chosen"] = response
+            save_item["rejected"] = rejected
+            dpo_pairs.append(save_item)
     logger.success(f"Found {len(dpo_pairs)} DPO samples and {len(gpt4_data)} SFT items")
     return Dataset.from_list(gpt4_data + dpo_pairs)
 
