@@ -274,5 +274,5 @@ accelerate launch -m bagel.tune.dpo \
   --output_dir $BASE_DIR/$WANDB_PROJECT \
   --deepspeed deepspeed.json \
   --save_steps 25 \
-  --save_total_limit 5 \
+  --save_total_limit 5
 ```

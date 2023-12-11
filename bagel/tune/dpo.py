@@ -35,10 +35,10 @@ class ScriptArguments:
         default=1, metadata={"help": "the number of gradient accumulation steps"}
     )
     warmup_ratio: Optional[float] = field(
-        default=0.015, metdata={"help": "warmup ratio"}
+        default=0.015, metadata={"help": "warmup ratio"}
     )
     neftune_noise_alpha: Optional[int] = field(
-        default=5, metdata={"help": "NEFTune noise alpha"}
+        default=5, metadata={"help": "NEFTune noise alpha"}
     )
     max_length: Optional[int] = field(
         default=512, metadata={"help": "max length of each sample"}
@@ -93,7 +93,7 @@ class ScriptArguments:
     )
     dataset: Optional[str] = field(
         default="bagel-dpo-v0.1.parquet",
-        help={"help": "parquet dataset to use for fine-tuning"},
+        metadata={"help": "parquet dataset to use for fine-tuning"},
     )
     eval_steps: Optional[int] = field(
         default=5, metadata={"help": "number of steps between evaluations"}
