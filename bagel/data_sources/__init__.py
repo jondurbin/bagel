@@ -20,6 +20,7 @@ from . import slimorca
 from . import spider
 from . import squad_v2
 from . import synthia
+from . import truthy
 from . import ultrafeedback
 from . import winogrande
 
