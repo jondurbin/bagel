@@ -177,13 +177,15 @@ Then, you'll have a DPO parquet and SFT parquet, which you can use to build a mo
 
 An example for mistral-7b:
 
+*Note: I actually used my fork of [qlora](https://github.com/jondurbin/qlora)'s `train.py` for this, but I'm porting it to a minified version here, not tested yet!*
+
 ```bash
 export BASE_DIR=/workspace
 export WANDB_API_KEY=[redacted]
 export WANDB_PROJECT=bagel-7b-v0.1
 
 # Run the pretraining.
-accelerate launch -m bagel.tune.sft \
+accelerate launch -m bagel/tune/sft.py \
   --model_name_or_path $BASE_DIR/mistral-7b \
   --final_output_dir $BASE_DIR/$WANDB_PROJECT \
   --output_dir $BASE_DIR/$WANDB_PROJECT-workdir \
