@@ -185,7 +185,7 @@ export WANDB_API_KEY=[redacted]
 export WANDB_PROJECT=bagel-7b-v0.1
 
 # Run the pretraining.
-accelerate launch -m bagel/tune/sft.py \
+accelerate launch bagel/tune/sft.py \
   --model_name_or_path $BASE_DIR/mistral-7b \
   --final_output_dir $BASE_DIR/$WANDB_PROJECT \
   --output_dir $BASE_DIR/$WANDB_PROJECT-workdir \
@@ -257,7 +257,7 @@ export BASE_DIR=/mnt/data
 export WANDB_API_KEY=[redacted]
 export WANDB_PROJECT=bagel-dpo-7b-v0.1
 
-accelerate launch -m bagel.tune.dpo \
+accelerate launch bagel/tune/dpo.py \
   --model_name_or_path bagel-7b-v0.1 \
   --learning_rate 3e-7 \
   --per_device_train_batch_size 2 \
