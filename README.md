@@ -46,6 +46,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Millions of instructions from 1600+ task categories (sampled down substantially, stratified by task type)
 - [openbookqa](https://huggingface.co/datasets/openbookqa)
   - Question answering dataset.
+- [pippa](https://huggingface.co/datasets/kingbri/PIPPA-shareGPT)
+  - Deduped version of [PIPPA](https://huggingface.co/datasets/PygmalionAI/PIPPA) in ShareGPT format.
 - [piqa](https://huggingface.co/datasets/piqa)
   - Phyiscal interaction question answering.
 - [python_alpaca](https://huggingface.co/datasets/Vezora/Tested-22k-Python-Alpaca)

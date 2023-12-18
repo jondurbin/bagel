@@ -1,3 +1,4 @@
+import re
 import transformers
 from tqdm import tqdm
 from loguru import logger
@@ -33,7 +34,9 @@ def load_data(known_uids=set([])):
         if uid in known_uids:
             continue
         known_uids.add(uid)
-        data.append({"id": uid, "text": item["scene_by_scene"]})
+        data.append(
+            {"id": uid, "text": re.sub(r"\[scene\]\s*", "", item["scene_by_scene"])}
+        )
 
     # Load plain scenes, combine to max out context.
     tokenizer = transformers.AutoTokenizer.from_pretrained(
@@ -53,7 +56,7 @@ def load_data(known_uids=set([])):
             if uid in known_uids:
                 continue
             known_uids.add(uid)
-            data.append({"id": uid, "text": current})
+            data.append({"id": uid, "text": re.sub(r"\[scene\]\s*", "", current)})
             current = ""
             current_length = 0
     return Dataset.from_list(data)

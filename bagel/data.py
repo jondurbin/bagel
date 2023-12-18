@@ -231,13 +231,10 @@ def format_io(tokenizer, dataset):
             "rejected": item["rejected"],
         }
 
-    dpo = concatenate_datasets(
-        [
-            dpo.map(lambda item: _dpo_format(tokenizer, item, alpaca_io)),
-            dpo.map(lambda item: _dpo_format(tokenizer, item, vicuna_io)),
-            dpo.map(lambda item: _dpo_format(tokenizer, item, chatml_io)),
-            dpo.map(lambda item: _dpo_format(tokenizer, item, llama2_io)),
-        ]
+    dpo = dpo.map(
+        lambda item: _dpo_format(
+            tokenizer, item, random.choice([alpaca_io, vicuna_io, chatml_io, llama2_io])
+        )
     ).remove_columns(
         [
             col
@@ -274,13 +271,10 @@ def format_io(tokenizer, dataset):
     instructions = concatenate_datasets([multi_turn, single_turn])
 
     # Map to each of our prompt formats.
-    instructions = concatenate_datasets(
-        [
-            instructions.map(lambda item: alpaca_io(tokenizer, item)),
-            instructions.map(lambda item: vicuna_io(tokenizer, item)),
-            instructions.map(lambda item: chatml_io(tokenizer, item)),
-            instructions.map(lambda item: llama2_io(tokenizer, item)),
-        ]
+    instructions = instructions.map(
+        lambda item: random.choice([alpaca_io, vicuna_io, chatml_io, llama2_io])(
+            tokenizer, item
+        )
     ).remove_columns(
         [
             col

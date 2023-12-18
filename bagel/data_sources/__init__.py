@@ -13,6 +13,7 @@ from . import mmlu
 from . import natural_instructions
 from . import openbookqa
 from . import orca_dpo_pairs
+from . import pippa
 from . import piqa
 from . import python_alpaca
 from . import rosetta_code
