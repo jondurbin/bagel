@@ -9,7 +9,7 @@ CONFIDENCE = 1
 
 def load_data(known_uids=set([])):
     """Bloomoon fandom RP dataset."""
-    logger.info("Loading Bloomoon Fandom RP dataset...")
+    logger.info("Loading Bluemoon Fandom RP dataset...")
     raw_data = json.loads(
         requests.get(
             "https://huggingface.co/datasets/Squish42/bluemoon-fandom-1-1-rp-cleaned/resolve/main/data/pruned/bluemoon.train.json?download=true"
