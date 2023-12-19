@@ -34,6 +34,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - RP-style data synthesized from movie scripts so the model isn't quite as boring as it otherwise would be.
 - [drop](https://huggingface.co/datasets/drop)
   - More reading comprehension.
+- [emobank](https://github.com/JULIELab/EmoBank)
+  - Emotion annotations using the Valence-Arousal-Domninance scheme.
 - [gutenberg](https://www.gutenberg.org/) (plain text)
   - Books/plain text, again to make the model less boring, only a handful of examples supported by [chapterize](https://github.com/JonathanReeve/chapterize)
 - [lmsys_chat_1m](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) (only gpt-4 items, also used for DPO)

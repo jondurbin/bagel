@@ -284,8 +284,10 @@ def format_io(tokenizer, dataset):
     )
 
     return (
-        concatenate_datasets([instructions, plain_text]).class_encode_column("source"),
-        dpo.class_encode_column("source"),
+        concatenate_datasets([instructions, plain_text])
+        .class_encode_column("source")
+        .shuffle(seed=42),
+        dpo.class_encode_column("source").shuffle(seed=42),
     )
 
 

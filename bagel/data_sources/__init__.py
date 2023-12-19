@@ -5,6 +5,7 @@ from . import belebele
 from . import boolq
 from . import cinematika
 from . import drop
+from . import emobank
 from . import gutenberg
 from . import helpsteer
 from . import lmsys_chat_1m
