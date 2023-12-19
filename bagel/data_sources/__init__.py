@@ -2,6 +2,7 @@ from . import ai2_arc
 from . import airoboros
 from . import apps
 from . import belebele
+from . import bluemoon
 from . import boolq
 from . import cinematika
 from . import drop

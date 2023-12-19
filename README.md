@@ -28,6 +28,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Python coding dataset with 10k problems.
 - [belebele](https://huggingface.co/datasets/facebook/belebele)
   - Multi-lingual reading comprehension dataset.
+- [bluemoon](https://huggingface.co/datasets/Squish42/bluemoon-fandom-1-1-rp-cleaned)
+  - Roleplay data scraped from Bluemoon, then cleaned and formatted as ShareGPT.
 - [boolq](https://huggingface.co/datasets/boolq)
   - Corpus of yes/no questions (which can be surprisingly difficult for AI to answer apparently?)
 - [cinematika](https://huggingface.co/datasets/jondurbin/cinematika-v0.1) (instruction and plain text)
