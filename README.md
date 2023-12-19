@@ -85,7 +85,7 @@ Only the train splits were used (if a split was provided), and an additional pas
 
 The deduplicated and decontamined list of instructions contains 1,671,822 items:
 
-- 1,602,217 SFT/instructions
+- 1,676,581 SFT/instructions
 - 59,247 DPO pairs
 - 1606 with both SFT and DPO data
 
