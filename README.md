@@ -32,6 +32,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Roleplay data scraped from Bluemoon, then cleaned and formatted as ShareGPT.
 - [boolq](https://huggingface.co/datasets/boolq)
   - Corpus of yes/no questions (which can be surprisingly difficult for AI to answer apparently?)
+- [capybara](https://huggingface.co/datasets/LDJnr/Capybara)
+  - Multi-turn dataset used to create the capybara models.
 - [cinematika](https://huggingface.co/datasets/jondurbin/cinematika-v0.1) (instruction and plain text)
   - RP-style data synthesized from movie scripts so the model isn't quite as boring as it otherwise would be.
 - [drop](https://huggingface.co/datasets/drop)

@@ -12,7 +12,11 @@ def load_data(known_uids=set([])):
     """MMLU training split."""
     data = []
     logger.info("Loading MMLU train split...")
-    for item in tqdm(load_dataset("cais/mmlu", "all", split="auxiliary_train")):
+    for item in tqdm(
+        load_dataset("cais/mmlu", "all", split="auxiliary_train")
+        .shuffle(seed=42)
+        .select(range(20000))
+    ):
         if len(item["choices"]) > len(CHOICES):
             continue
         question = "\n".join(

@@ -47,10 +47,15 @@ def load_data(known_uids=set([])):
             continue
         known_uids.add(uid)
         data.append({"id": uid, "conversations": conv})
-    return Dataset.from_list(data).filter(
-        lambda item: not has_refusal(
-            "\n".join([turn["value"] for turn in item["conversations"]])
+    return (
+        Dataset.from_list(data)
+        .filter(
+            lambda item: not has_refusal(
+                "\n".join([turn["value"] for turn in item["conversations"]])
+            )
         )
+        .shuffle(seed=42)
+        .select(range(15000))
     )
 
 

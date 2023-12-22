@@ -9,10 +9,15 @@ CONFIDENCE = 2
 def load_data(known_uids=set([])):
     """SlimOrca dataset."""
     logger.info("Loading SlimOrca dataset...")
-    dataset = load_dataset("Open-Orca/SlimOrca")["train"].filter(
-        lambda item: not has_refusal(
-            "\n".join([turn["value"] for turn in item["conversations"]])
+    dataset = (
+        load_dataset("Open-Orca/SlimOrca")["train"]
+        .filter(
+            lambda item: not has_refusal(
+                "\n".join([turn["value"] for turn in item["conversations"]])
+            )
         )
+        .shuffle(seed=42)
+        .select(range(100000))
     )
     data = []
     for item in tqdm(dataset):

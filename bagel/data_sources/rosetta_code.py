@@ -15,7 +15,11 @@ def load_data(known_uids=set([])):
         item["canonical_solution"]
         for item in load_dataset("openai_humaneval", split="test")
     ]
-    for item in tqdm(load_dataset("cakiki/rosetta-code", split="train")):
+    for item in tqdm(
+        load_dataset("cakiki/rosetta-code", split="train").train_test_split(
+            train_size=25000
+        )["train"]
+    ):
         instruction = "\n".join(
             [
                 f"Create a solution in {item['language_name']} to the following:",

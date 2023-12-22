@@ -303,7 +303,7 @@ def get_or_create_datasets(tokenizer):
         dataset = Dataset.from_parquet("bagel-clean-v0.1.parquet")
     else:
         if os.path.exists("bagel-raw-v0.1.parquet"):
-            dataset = decontaminate(Dataset.from_parquet("bagel-clean-v0.1.parquet"))
+            dataset = decontaminate(Dataset.from_parquet("bagel-raw-v0.1.parquet"))
             dataset.to_parquet("bagel-clean-v0.1.parquet")
         else:
             raw_dataset = load_datasets()

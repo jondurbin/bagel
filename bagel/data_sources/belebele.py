@@ -12,7 +12,7 @@ def load_data(known_uids=set([])):
     dataset = load_dataset("facebook/belebele")
     for split in dataset:
         logger.info(f"Loading belebele train split -- {split}")
-        for item in tqdm(dataset[split]):
+        for item in tqdm(dataset[split].shuffle(seed=42).select(range(300))):
             instruction = "\n".join(
                 [
                     item["flores_passage"],

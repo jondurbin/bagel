@@ -18,7 +18,9 @@ def load_data(known_uids=set([])):
     """SquadV2 train split."""
     data = []
     logger.info("Loading SQuAD2.0 train split...")
-    for item in tqdm(load_dataset("squad_v2", split="train")):
+    for item in tqdm(
+        load_dataset("squad_v2", split="train").shuffle(seed=42).select(range(25000))
+    ):
         bad = random.choice(BAD)
         question = "\n".join(
             [

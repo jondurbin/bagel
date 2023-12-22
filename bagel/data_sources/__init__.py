@@ -1,9 +1,20 @@
+import json
+import faiss
+import requests
+import numpy as np
+from tqdm import tqdm
+from loguru import logger
+from types import ModuleType
+from datasets import concatenate_datasets, load_dataset
+from transformers import AutoModel
+
 from . import ai2_arc
 from . import airoboros
 from . import apps
 from . import belebele
 from . import bluemoon
 from . import boolq
+from . import capybara
 from . import cinematika
 from . import drop
 from . import emobank
@@ -27,17 +38,6 @@ from . import toxic
 from . import truthy
 from . import ultrafeedback
 from . import winogrande
-
-# Other imports.
-import json
-import faiss
-import requests
-import numpy as np
-from tqdm import tqdm
-from loguru import logger
-from types import ModuleType
-from datasets import concatenate_datasets, load_dataset
-from transformers import AutoModel
 
 
 def decontaminate(dataset):
@@ -151,7 +151,7 @@ def decontaminate(dataset):
     logger.info(
         "Removing contaminated values -- this is going to take a long time, go find a snack or something..."
     )
-    index = faiss.index_cpu_to_all_gpus(index)
+    # index = faiss.index_cpu_to_all_gpus(index)
 
     # Filter for contamination, in batches -- if we don't use batches, the
     # performance of faiss is quite slow, particularly on CPU.
@@ -227,6 +227,15 @@ def load_datasets():
             dataset = dataset.add_column("text", [None] * len(dataset))
         if "source" not in dataset.column_names:
             dataset = dataset.add_column("source", [key] * len(dataset))
+        if any([item is None for item in dataset["source"]]):
+            dataset = dataset.remove_columns(["source"]).add_column(
+                "source", [key] * len(dataset)
+            )
+
+        # Sample down the dataset vi DSIR.
+        if len(dataset) >= 75000:
+            dataset = dataset.shuffle(seed=42).select(range(50000))
+        logger.success(f"{key} -- {len(dataset)} items")
         dataset = dataset.remove_columns(
             [
                 col

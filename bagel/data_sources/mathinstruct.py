@@ -10,7 +10,12 @@ def load_data(known_uids=set([])):
     """MathInstruct training split."""
     logger.info("Loading MathInstruct train split...")
     data = []
-    for item in tqdm(load_dataset("TIGER-Lab/MathInstruct", split="train")):
+    dataset = (
+        load_dataset("TIGER-Lab/MathInstruct", split="train")
+        .class_encode_column("source")
+        .train_test_split(train_size=50000, stratify_by_column="source")["train"]
+    )
+    for item in tqdm(dataset):
         as_conv = as_conversation(item["instruction"], item["output"])
         if as_conv["id"] in known_uids:
             continue
