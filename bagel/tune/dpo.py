@@ -9,7 +9,9 @@ from transformers import (
     AutoTokenizer,
     HfArgumentParser,
     TrainingArguments,
+    BitsAndBytesConfig,
 )
+from peft import prepare_model_for_kbit_training, PeftModel
 from trl import DPOTrainer
 
 
@@ -24,6 +26,12 @@ class ScriptArguments:
     )
     model_name_or_path: Optional[str] = field(
         default="mistralai/mistral-7b-v0.1", metadata={"help": "the model name"}
+    )
+    adapter_path: Optional[str] = field(
+        default=None, metadata={"help": "path to adapter model when using (q)lora"}
+    )
+    four_bit: Optional[bool] = field(
+        default=False, metadata={"help": "use 4-bit quantization"}
     )
     learning_rate: Optional[float] = field(
         default=5e-7, metadata={"help": "optimizer learning rate"}
@@ -83,9 +91,9 @@ class ScriptArguments:
             "help": "key word arguments to be passed along `torch.utils.checkpoint.checkpoint` method - e.g. `use_reentrant=False`"
         },
     )
-    use_flash_attention_2: Optional[bool] = field(
-        default=True,
-        metadata={"help": "use flash-attn 2.*"},
+    attn_implementation: Optional[str] = field(
+        default=None,
+        metadata={"help": "attention implementation to use"},
     )
     use_fast_tokenizer: Optional[bool] = field(
         default=False,
@@ -123,10 +131,22 @@ def train():
     parser = HfArgumentParser(ScriptArguments)
     script_args = parser.parse_args_into_dataclasses()[0]
 
+    bnb_config = None
+    if script_args.four_bit:
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            llm_int8_threshold=6.0,
+            llm_int8_has_fp16_weight=False,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=False,
+            bnb_4bit_quant_type="nf4",
+        )
     model = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
-        use_flash_attention_2=script_args.use_flash_attention_2,
-        torch_dtype=torch.bfloat16,
+        load_in_4bit=script_args.four_bit,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        attn_implementation=script_args.attn_implementation,
     )
 
     if script_args.ignore_bias_buffers:
@@ -136,9 +156,20 @@ def train():
 
     model_ref = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
-        use_flash_attention_2=script_args.use_flash_attention_2,
-        torch_dtype=torch.bfloat16,
+        load_in_4bit=script_args.four_bit,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        attn_implementation=script_args.attn_implementation,
     )
+    if script_args.four_bit:
+        model = prepare_model_for_kbit_training(
+            model, use_gradient_checkpointing=script_args.gradient_checkpointing
+        )
+
+    if script_args.adapter_path:
+        model = PeftModel.from_pretrained(
+            model, script_args.adapter_path, is_trainable=True
+        )
 
     tokenizer = AutoTokenizer.from_pretrained(
         script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer
