@@ -160,7 +160,7 @@ Tell me how to fry an egg.
 inputs = tokenizer(input_str, return_tensors="pt")
 ```
 
-If you *really* want to use `<|im_start|>` and `<|im_end|>`, just update your `tokenizer_config.json` to use `<|im_start|>` instead of `<s>` and `<|im_end|>` instead of `</s>` and when tokenizing.  And if you still don't like what I've done to this chat-ml-ish format, feel free to cry into your pillow or fork the code and do a new fine-tune.
+If you *really* want to use `<|im_start|>` and `<|im_end|>`, just update your `tokenizer_config.json` to use `<|im_start|>` instead of `<s>` and `<|im_end|>` instead of `</s>`.  And if you still don't like what I've done to this chat-ml-ish format, feel free to cry into your pillow or fork the code and do a new fine-tune.
 
 ### Llama-2 chat
 
