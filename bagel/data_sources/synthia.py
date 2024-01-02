@@ -55,7 +55,7 @@ def load_data(known_uids=set([])):
             )
         )
         .shuffle(seed=42)
-        .select(range(15000))
+        .select(range(25000))
     )
 
 

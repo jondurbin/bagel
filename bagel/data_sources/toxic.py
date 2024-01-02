@@ -11,7 +11,7 @@ def load_data(known_uids=set([])):
     dataset = load_dataset("unalignment/toxic-dpo-v0.1", split="train")
     data = []
     for item in dataset:
-        # We don't care about the known UIDs here, since we are using it for DPO.
+        # We don't care about the known UIDs here.
         if item["chosen"] != item["rejected"]:
             data.append(
                 {
@@ -20,7 +20,16 @@ def load_data(known_uids=set([])):
                     "prompt": item["prompt"],
                     "chosen": item["chosen"],
                     "rejected": item["rejected"],
-                    "conversations": None,
+                    "conversations": [
+                        {
+                            "from": "human",
+                            "value": item["prompt"],
+                        },
+                        {
+                            "from": "gpt",
+                            "value": item["chosen"],
+                        },
+                    ],
                 }
             )
     return Dataset.from_list(data)

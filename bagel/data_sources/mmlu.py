@@ -15,7 +15,7 @@ def load_data(known_uids=set([])):
     for item in tqdm(
         load_dataset("cais/mmlu", "all", split="auxiliary_train")
         .shuffle(seed=42)
-        .select(range(20000))
+        .select(range(50000))
     ):
         if len(item["choices"]) > len(CHOICES):
             continue

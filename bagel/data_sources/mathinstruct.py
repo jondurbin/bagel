@@ -13,7 +13,7 @@ def load_data(known_uids=set([])):
     dataset = (
         load_dataset("TIGER-Lab/MathInstruct", split="train")
         .class_encode_column("source")
-        .train_test_split(train_size=50000, stratify_by_column="source")["train"]
+        .train_test_split(train_size=75000, stratify_by_column="source")["train"]
     )
     for item in tqdm(dataset):
         as_conv = as_conversation(item["instruction"], item["output"])

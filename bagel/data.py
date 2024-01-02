@@ -38,7 +38,7 @@ def llama2_io(tokenizer, item):
     if item["conversations"][0]["from"] != "system":
         system_prompt = None
         offset = 0
-        if random.random() <= 0.15:
+        if random.random() <= 0.5:
             system_prompt = DEFAULT_SYSTEM_PROMPT
     chat_history = [
         (item["conversations"][idx]["value"], item["conversations"][idx + 1]["value"])
@@ -63,7 +63,7 @@ def chatml_io(tokenizer, item):
     """
     # Flip a coin on including a default system prompt or not.
     if item["conversations"][0]["from"] != "system":
-        if random.random() <= 0.15:
+        if random.random() <= 0.5:
             item["conversations"] = [
                 {"from": "system", "value": DEFAULT_SYSTEM_PROMPT},
             ] + item["conversations"]
@@ -92,7 +92,7 @@ def vicuna_io(tokenizer, item):
     # Flip a coin on including a default system prompt or not.
     if item["conversations"][0]["from"] != "system":
         # Larger probability of including system prompt for vicuna.
-        if random.random() <= 0.35:
+        if random.random() <= 0.5:
             item["conversations"] = [
                 {
                     "from": "system",

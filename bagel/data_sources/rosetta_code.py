@@ -17,7 +17,7 @@ def load_data(known_uids=set([])):
     ]
     for item in tqdm(
         load_dataset("cakiki/rosetta-code", split="train").train_test_split(
-            train_size=25000
+            train_size=75000
         )["train"]
     ):
         instruction = "\n".join(

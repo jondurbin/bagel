@@ -13,7 +13,7 @@ def load_data(known_uids=set([])):
     dataset = (
         load_dataset("Muennighoff/natural-instructions", split="train")
         .class_encode_column("task_name")
-        .train_test_split(train_size=50000, stratify_by_column="task_name")["train"]
+        .train_test_split(train_size=75000, stratify_by_column="task_name")["train"]
     )
     for item in tqdm(dataset):
         question = "\n".join([item["definition"], item["inputs"]])

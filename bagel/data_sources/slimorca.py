@@ -17,7 +17,7 @@ def load_data(known_uids=set([])):
             )
         )
         .shuffle(seed=42)
-        .select(range(100000))
+        .select(range(200000))
     )
     data = []
     for item in tqdm(dataset):
