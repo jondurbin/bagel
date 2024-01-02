@@ -1,5 +1,4 @@
 import re
-import transformers
 from tqdm import tqdm
 from loguru import logger
 from datasets import load_dataset, Dataset
@@ -11,6 +10,10 @@ PRIORITY = 3
 def load_data(known_uids=set([])):
     """Cinematika v0.1 dataset."""
     data = []
+
+    def _cleanup_setting(text):
+        return re.sub(r"\[scene\]\s*", "", text)
+
     for segment in (
         "prompt_to_character_card",
         "rp_to_character_card",
@@ -22,7 +25,9 @@ def load_data(known_uids=set([])):
             "jondurbin/cinematika-v0.1", data_files=[f"{segment}.parquet"]
         )
         for item in tqdm(dataset["train"]):
-            as_conv = as_conversation(item["input"], item["output"])
+            as_conv = as_conversation(
+                _cleanup_setting(item["input"]), _cleanup_setting(item["output"])
+            )
             known_uids.add(as_conv["id"])
             data.append(as_conv)
     logger.info("Loading Cinematika v0.1 dataset -- scene_by_scene...")
@@ -39,26 +44,17 @@ def load_data(known_uids=set([])):
         )
 
     # Load plain scenes, combine to max out context.
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        "MistralAI/mistral-7b-v0.1", use_fast=True
-    )
     dataset = load_dataset(
-        "jondurbin/cinematika-v0.1", data_files=["plain_scenes.parquet"]
+        "jondurbin/cinematika-v0.1", data_files=["plain_full_script.parquet"]
     )
-    current = ""
-    current_length = 0
-    logger.info("Loading Cinematika v0.1 dataset -- plain scenes...")
-    for item in tqdm(dataset["train"].sort("index")):
-        current_length += len(tokenizer(item["plain_scenes"]).input_ids)
-        current += "\n" + item["plain_scenes"]
-        if current_length > 4096:
-            uid = get_uid(current)
-            if uid in known_uids:
-                continue
-            known_uids.add(uid)
-            data.append({"id": uid, "text": re.sub(r"\[scene\]\s*", "", current)})
-            current = ""
-            current_length = 0
+    logger.info("Loading Cinematika v0.1 dataset -- plain full script...")
+    for item in tqdm(dataset["train"]):
+        data.append(
+            {
+                "id": get_uid(item["plain_full_script"]),
+                "text": re.sub(r"\[scene\]\s*", "", item["plain_full_script"]),
+            }
+        )
     return Dataset.from_list(data)
 
 
