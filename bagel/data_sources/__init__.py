@@ -221,7 +221,7 @@ def load_datasets():
     }
     all_datasets = []
     known_uids = set([])
-    for key, val in sorted(things.items(), key=lambda m: m[1].CONFIDENCE, reverse=True):
+    for key, val in sorted(things.items(), key=lambda m: m[1].PRIORITY, reverse=True):
         dataset = val.load_data(known_uids)
         if "text" not in dataset.column_names:
             dataset = dataset.add_column("text", [None] * len(dataset))

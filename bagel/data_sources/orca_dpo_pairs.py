@@ -2,7 +2,7 @@ from loguru import logger
 from datasets import load_dataset, Dataset
 from .util import get_uid, has_refusal
 
-CONFIDENCE = 2
+PRIORITY = 2
 
 
 def load_data(known_uids=set([])):

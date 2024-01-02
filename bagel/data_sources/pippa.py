@@ -5,7 +5,7 @@ from loguru import logger
 from datasets import Dataset
 from .util import has_refusal
 
-CONFIDENCE = 1
+PRIORITY = 1
 
 
 def load_data(known_uids=set([])):

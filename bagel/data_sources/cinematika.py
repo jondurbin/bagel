@@ -5,7 +5,7 @@ from loguru import logger
 from datasets import load_dataset, Dataset
 from .util import as_conversation, get_uid
 
-CONFIDENCE = 3
+PRIORITY = 3
 
 
 def load_data(known_uids=set([])):

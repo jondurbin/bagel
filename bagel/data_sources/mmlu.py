@@ -4,7 +4,7 @@ from loguru import logger
 from datasets import Dataset, load_dataset
 from .util import as_conversation
 
-CONFIDENCE = 3
+PRIORITY = 3
 CHOICES = ["A", "B", "C", "D", "E", "F", "G"]
 
 

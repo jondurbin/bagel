@@ -4,7 +4,7 @@ from datasets import Dataset, load_dataset
 from .util import get_uid
 
 
-CONFIDENCE = 2
+PRIORITY = 2
 
 
 def load_data(known_uids=set([])):

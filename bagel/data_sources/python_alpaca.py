@@ -3,7 +3,7 @@ from loguru import logger
 from datasets import Dataset, load_dataset
 from .util import as_conversation, has_refusal
 
-CONFIDENCE = 1
+PRIORITY = 1
 
 
 def load_data(known_uids=set([])):

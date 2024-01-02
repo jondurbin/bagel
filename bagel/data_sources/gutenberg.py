@@ -9,7 +9,7 @@ from chapterize.chapterize import Book
 from datasets import Dataset
 from .util import get_uid
 
-CONFIDENCE = 3
+PRIORITY = 3
 BOOKS = [
     ("A Study in Scarlet", 244),
     ("A Tale of Two Cities", 98),

@@ -4,7 +4,7 @@ from loguru import logger
 from datasets import Dataset, load_dataset
 from .util import as_conversation
 
-CONFIDENCE = 3
+PRIORITY = 3
 BAD = [
     "IRRELEVANT",
     "DO NOT KNOW",

@@ -5,7 +5,7 @@ from datasets import Dataset, load_dataset
 from .util import as_conversation
 
 
-CONFIDENCE = 3
+PRIORITY = 3
 
 
 def load_data(known_uids=set([])):

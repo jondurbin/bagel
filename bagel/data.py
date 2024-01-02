@@ -231,10 +231,28 @@ def format_io(tokenizer, dataset):
             "rejected": item["rejected"],
         }
 
-    dpo = dpo.map(
-        lambda item: _dpo_format(
-            tokenizer, item, random.choice([alpaca_io, vicuna_io, chatml_io, llama2_io])
-        )
+    def _get_chunks(input_dataset):
+        # Split into chunks of 75%, ensuring all instructions are covered, so we get exactly
+        # 3 epochs worth of data (4 prompt formats * 75% of data = 3 x dataset size)
+        chunk_size = (len(input_dataset) * 3) // 4
+        quarter = len(input_dataset) - chunk_size
+        ds = [item for item in input_dataset]
+        return [
+            Dataset.from_list(ds[0:chunk_size]),
+            Dataset.from_list(ds[quarter : len(ds)]),
+            Dataset.from_list(ds[0:quarter] + ds[quarter * 2 : len(ds)]),
+            Dataset.from_list(ds[0 : quarter * 2] + ds[quarter * 3 : len(ds)]),
+        ]
+
+    formatters = [alpaca_io, vicuna_io, chatml_io, llama2_io]
+    dpo_chunks = _get_chunks(dpo)
+    dpo = concatenate_datasets(
+        [
+            dpo_chunks[idx].map(
+                lambda item: _dpo_format(tokenizer, item, formatters[idx])
+            )
+            for idx in range(len(formatters))
+        ]
     ).remove_columns(
         [
             col
@@ -268,13 +286,18 @@ def format_io(tokenizer, dataset):
     )
 
     # Re-combine the expanded multi-turn with single-turn instructions.
-    instructions = concatenate_datasets([multi_turn, single_turn])
+    instructions = concatenate_datasets([multi_turn, single_turn]).shuffle(seed=42)
+
+    # Split into chunks of 75%, ensuring all instructions are covered, so we get exactly
+    # 3 epochs worth of data (4 prompt formats * 75% of data = 3 x dataset size)
+    sft_chunks = _get_chunks(instructions)
 
     # Map to each of our prompt formats.
-    instructions = instructions.map(
-        lambda item: random.choice([alpaca_io, vicuna_io, chatml_io, llama2_io])(
-            tokenizer, item
-        )
+    instructions = concatenate_datasets(
+        [
+            sft_chunks[idx].map(lambda item: formatters[idx](tokenizer, item))
+            for idx in range(len(formatters))
+        ]
     ).remove_columns(
         [
             col
@@ -284,10 +307,8 @@ def format_io(tokenizer, dataset):
     )
 
     return (
-        concatenate_datasets([instructions, plain_text])
-        .class_encode_column("source")
-        .shuffle(seed=42),
-        dpo.class_encode_column("source").shuffle(seed=42),
+        concatenate_datasets([instructions, plain_text]).shuffle(seed=42),
+        dpo.shuffle(seed=42),
     )
 
 
