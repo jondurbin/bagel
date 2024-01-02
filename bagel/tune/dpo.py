@@ -9,7 +9,10 @@ from transformers import (
     AutoTokenizer,
     HfArgumentParser,
     TrainingArguments,
+    BitsAndBytesConfig,
 )
+from peft import prepare_model_for_kbit_training, PeftModel
+from peft.tuners.lora import LoraLayer
 from trl import DPOTrainer
 
 
@@ -24,6 +27,12 @@ class ScriptArguments:
     )
     model_name_or_path: Optional[str] = field(
         default="mistralai/mistral-7b-v0.1", metadata={"help": "the model name"}
+    )
+    adapter_path: Optional[str] = field(
+        default=None, metadata={"help": "path to adapter model when using (q)lora"}
+    )
+    four_bit: Optional[bool] = field(
+        default=False, metadata={"help": "use 4-bit quantization"}
     )
     learning_rate: Optional[float] = field(
         default=5e-7, metadata={"help": "optimizer learning rate"}
@@ -83,9 +92,9 @@ class ScriptArguments:
             "help": "key word arguments to be passed along `torch.utils.checkpoint.checkpoint` method - e.g. `use_reentrant=False`"
         },
     )
-    use_flash_attention_2: Optional[bool] = field(
-        default=True,
-        metadata={"help": "use flash-attn 2.*"},
+    attn_implementation: Optional[str] = field(
+        default=None,
+        metadata={"help": "attention implementation to use"},
     )
     use_fast_tokenizer: Optional[bool] = field(
         default=False,
@@ -117,16 +126,45 @@ class ScriptArguments:
     save_total_limit: Optional[int] = field(
         default=3, metadata={"help": "maximum number of checkpoints to save"}
     )
+    max_memory: int = field(default=80000, metadata={"help": "max vram per gpu"})
 
 
 def train():
     parser = HfArgumentParser(ScriptArguments)
     script_args = parser.parse_args_into_dataclasses()[0]
 
+    if torch.cuda.is_available():
+        n_gpus = torch.cuda.device_count()
+    max_memory = f"{script_args.max_memory}MB"
+    max_memory = {i: max_memory for i in range(n_gpus)}
+    device_map = "auto"
+    if os.environ.get("LOCAL_RANK") is not None:
+        local_rank = int(os.environ.get("LOCAL_RANK", "0"))
+        device_map = {"": local_rank}
+        max_memory = {"": max_memory[local_rank]}
+
+    bnb_config = None
+    if script_args.four_bit:
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            load_in_8bit=False,
+            llm_int8_threshold=6.0,
+            llm_int8_has_fp16_weight=False,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+        )
     model = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
-        use_flash_attention_2=script_args.use_flash_attention_2,
+        low_cpu_mem_usage=not script_args.deepspeed,
+        load_in_4bit=script_args.four_bit,
+        load_in_8bit=False,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        attn_implementation=script_args.attn_implementation,
         torch_dtype=torch.bfloat16,
+        max_memory=None if script_args.deepspeed else max_memory,
+        device_map=None if script_args.deepspeed else device_map,
     )
 
     if script_args.ignore_bias_buffers:
@@ -136,9 +174,42 @@ def train():
 
     model_ref = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
-        use_flash_attention_2=script_args.use_flash_attention_2,
+        load_in_4bit=script_args.four_bit,
+        low_cpu_mem_usage=not script_args.deepspeed,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        attn_implementation=script_args.attn_implementation,
         torch_dtype=torch.bfloat16,
+        max_memory=None if script_args.deepspeed else max_memory,
+        device_map=None if script_args.deepspeed else device_map,
     )
+    if script_args.four_bit:
+        model = prepare_model_for_kbit_training(
+            model, use_gradient_checkpointing=script_args.gradient_checkpointing
+        )
+
+    for mod in (model, model_ref):
+        for name, module in mod.named_modules():
+            if isinstance(module, LoraLayer):
+                module = module.to(torch.bfloat16)
+            if "norm" in name:
+                module = module.to(torch.bfloat16)
+            if "lm_head" in name or "embed_tokens" in name:
+                if hasattr(module, "weight"):
+                    if module.weight.dtype == torch.float32:
+                        module = module.to(torch.bfloat16)
+
+    if script_args.gradient_checkpointing and hasattr(
+        model, "gradient_checkpointing_enable"
+    ):
+        model.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
+
+    if script_args.adapter_path:
+        model = PeftModel.from_pretrained(
+            model, script_args.adapter_path, is_trainable=True
+        )
 
     tokenizer = AutoTokenizer.from_pretrained(
         script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer
@@ -174,6 +245,7 @@ def train():
         save_strategy="steps",
         save_steps=script_args.save_steps,
         save_total_limit=script_args.save_total_limit,
+        ddp_find_unused_parameters=False,
     )
 
     dpo_trainer = DPOTrainer(
