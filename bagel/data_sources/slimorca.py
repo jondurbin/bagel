@@ -9,12 +9,31 @@ PRIORITY = 2
 def load_data(known_uids=set([])):
     """SlimOrca dataset."""
     logger.info("Loading SlimOrca dataset...")
+
+    # Airoboros 3.2 includes some ~11k slimorca examples that were extended to have
+    # multiple, related turns.  We'll exclude that set here.
+    skip = set(
+        [
+            item["conversations"][1]["value"].strip()
+            for item in load_dataset("jondurbin/airoboros-3.2", split="train").filter(
+                lambda item: item["category"] == "slimorca_multiturn"
+            )
+        ]
+    )
+
+    def _should_skip(item):
+        offset = 0
+        if item["conversations"][0]["from"] == "system":
+            offset = 1
+        return item["conversations"][offset]["value"].strip() in skip
+
     dataset = (
         load_dataset("Open-Orca/SlimOrca")["train"]
         .filter(
             lambda item: not has_refusal(
                 "\n".join([turn["value"] for turn in item["conversations"]])
             )
+            and not _should_skip(item)
         )
         .shuffle(seed=42)
         .select(range(200000))

@@ -9,11 +9,9 @@ PRIORITY = 1
 
 
 def load_data(known_uids=set([])):
-    """Airoboros 3.1 dataset (with unalignment)."""
-    logger.info("Loading airoboros-3.1 dataset...")
-    dataset = load_dataset(
-        "unalignment/spicy-3.1", data_files=["conversations-no-mathjson.json"]
-    )["train"]
+    """Airoboros 3.2 dataset."""
+    logger.info("Loading airoboros-3.2 dataset...")
+    dataset = load_dataset("jondurbin/airoboros-3.2", split="train")
     dataset = dataset.add_column(
         "source", [f"airoboros_{item['category']}" for item in dataset]
     )
