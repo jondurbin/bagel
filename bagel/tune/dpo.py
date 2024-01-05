@@ -166,6 +166,7 @@ def train():
         max_memory=None if script_args.deepspeed else max_memory,
         device_map=None if script_args.deepspeed else device_map,
     )
+    model.config.use_cache = False
 
     if script_args.ignore_bias_buffers:
         model._ddp_params_and_buffers_to_ignore = [
@@ -183,6 +184,7 @@ def train():
         max_memory=None if script_args.deepspeed else max_memory,
         device_map=None if script_args.deepspeed else device_map,
     )
+    model_ref.config.use_cache = False
     if script_args.four_bit:
         model = prepare_model_for_kbit_training(
             model, use_gradient_checkpointing=script_args.gradient_checkpointing
