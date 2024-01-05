@@ -151,7 +151,7 @@ def decontaminate(dataset):
     logger.info(
         "Removing contaminated values -- this is going to take a long time, go find a snack or something..."
     )
-    # index = faiss.index_cpu_to_all_gpus(index)
+    index = faiss.index_cpu_to_all_gpus(index)
 
     # Filter for contamination, in batches -- if we don't use batches, the
     # performance of faiss is quite slow, particularly on CPU.
