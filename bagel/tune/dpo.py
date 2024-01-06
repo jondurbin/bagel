@@ -212,6 +212,9 @@ def train():
         model = PeftModel.from_pretrained(
             model, script_args.adapter_path, is_trainable=True
         )
+        model_ref = PeftModel.from_pretrained(
+            model_ref, script_args.adapter_path, is_trainable=True
+        )
 
     tokenizer = AutoTokenizer.from_pretrained(
         script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer
