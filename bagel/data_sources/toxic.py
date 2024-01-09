@@ -34,25 +34,6 @@ def load_data(known_uids=set([])):
                     ],
                 }
             )
-
-    # Comedy snippets.
-    dataset = load_dataset(
-        "unalignment/toxic-dpo-v0.2",
-        data_files=["comedy-snippets.parquet"],
-        split="train",
-    )
-    for item in dataset:
-        data.append(
-            {
-                "id": get_uid(item["snippet"]),
-                "source": "toxic-dpo-comedy",
-                "prompt": None,
-                "chosen": None,
-                "rejected": None,
-                "conversations": None,
-                "text": item["snippet"],
-            }
-        )
     return Dataset.from_list(data)
 
 
