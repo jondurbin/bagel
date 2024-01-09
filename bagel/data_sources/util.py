@@ -10,7 +10,6 @@ REFUSALS = [
         "language model",
         "large language",
         "as an? (ai|generative language|gpt|bot)",
-        "illegal and dangerous",
         "important to note",
         "i do(n't| not) (possess|have|exhibit) (personal|consciousness|subjective)",
         "personal (feelings|thoughts|emotions|desires|experiences|goals|objective|belief)",
@@ -21,6 +20,13 @@ REFUSALS = [
         "violates my",
         "i (can('t| ?not)|w(on't|will not)|am (not |un)able.?).{0,30}(you are|you're|your )",
         "please note that",
+        "unethical|illegal|dangerous",
+        "a text-based",
+        "(engag(e|ing)|participat(e|ing)|be involved (in|with)|promot(e|ing)|discuss(ing)?|provid(e|ing))( in)?(\\s*\\w+ that)?(\\s+potentially)? (derogatory|inappropriate|offensive|discriminate|discriminatory|sexist|unacceptable|immoral|unethical|unacceptable|hateful|harmful)",
+        "i am commited to",
+        "adhere to safety guidelines",
+        "maintain user safety",
+        "about something else instead",
     ]
 ]
 

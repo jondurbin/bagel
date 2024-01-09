@@ -35,7 +35,7 @@ def load_data(known_uids=set([])):
             del item["conversations"][1]
         elif item["conversations"][0]["from"] == "gpt":
             continue
-        if random.random() <= 0.5:
+        if random.random() <= 0.25:
             keep.append({"id": item["id"], "conversations": item["conversations"]})
     return Dataset.from_list(keep)
 

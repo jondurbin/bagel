@@ -8,7 +8,9 @@ PRIORITY = 2
 def load_data(known_uids=set([])):
     """Toxic DPO pairs."""
     logger.info("Loading Toxic DPO dataset...")
-    dataset = load_dataset("unalignment/toxic-dpo-v0.1", split="train")
+    dataset = load_dataset(
+        "unalignment/toxic-dpo-v0.2", data_files=["toxic-dpo.parquet"], split="train"
+    )
     data = []
     for item in dataset:
         # We don't care about the known UIDs here.
@@ -32,6 +34,25 @@ def load_data(known_uids=set([])):
                     ],
                 }
             )
+
+    # Comedy snippets.
+    dataset = load_dataset(
+        "unalignment/toxic-dpo-v0.2",
+        data_files=["comedy-snippets.parquet"],
+        split="train",
+    )
+    for item in dataset:
+        data.append(
+            {
+                "id": get_uid(item["snippet"]),
+                "source": "toxic-dpo-comedy",
+                "prompt": None,
+                "chosen": None,
+                "rejected": None,
+                "conversations": None,
+                "text": item["snippet"],
+            }
+        )
     return Dataset.from_list(data)
 
 

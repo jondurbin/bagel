@@ -14,10 +14,12 @@ from . import apps
 from . import belebele
 from . import bluemoon
 from . import boolq
+from . import camelai
 from . import capybara
 from . import cinematika
 from . import drop
 from . import emobank
+from . import evol_instruct
 from . import gutenberg
 from . import helpsteer
 from . import lmsys_chat_1m
@@ -259,7 +261,7 @@ def load_datasets():
 if __name__ == "__main__":
     dataset = load_datasets()
     print(dataset)
-    dataset.to_parquet("bagel-raw-v0.1.parquet")
+    dataset.to_parquet("bagel-raw-v0.4.parquet")
     decontaminated = decontaminate(dataset)
     print(decontaminated)
-    decontaminated.to_parquet("bagel-clean-v0.1.parquet")
+    decontaminated.to_parquet("bagel-clean-v0.4.parquet")
