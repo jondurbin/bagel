@@ -28,7 +28,7 @@ def load_data(known_uids=set([])):
         return item["conversations"][offset]["value"].strip() in skip
 
     dataset = (
-        load_dataset("Open-Orca/SlimOrca-Dedup", split="train")
+        load_dataset("Open-Orca/SlimOrca", split="train")
         .filter(
             lambda item: not has_refusal(
                 "\n".join([turn["value"] for turn in item["conversations"]])

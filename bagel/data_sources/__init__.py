@@ -33,7 +33,7 @@ from . import piqa
 from . import python_alpaca
 from . import rosetta_code
 from . import slimorca
-from . import spider
+from . import sql
 from . import squad_v2
 from . import synthia
 from . import toxic
