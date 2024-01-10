@@ -33,6 +33,7 @@ BOOKS = [
 @backoff.on_exception(backoff.fibo, (Exception,), max_value=90, max_tries=10)
 def download_book(session, book_id):
     result = session.get(f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt")
+    result.encoding = result.apparent_encoding
     assert result.status_code == 200, result.text
     return result.text
 
@@ -49,7 +50,7 @@ def load_data(known_uids=set([])):
             title_id = get_uid(title)
             input_path = os.path.join(tempdir, f"{title_id}.txt")
             text = None
-            with open(input_path, "w") as outfile:
+            with open(input_path, "w", encoding="utf-8") as outfile:
                 try:
                     text = download_book(session, book_id)
                 except Exception:
@@ -60,7 +61,7 @@ def load_data(known_uids=set([])):
                 continue
             Book(input_path, False, False)
             for path in glob.glob(os.path.join(tempdir, f"{title_id}-chapters/*.txt")):
-                with open(path) as infile:
+                with open(path, encoding="utf-8") as infile:
                     chapter = infile.read().strip()
                 data.append(
                     {
