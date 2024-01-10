@@ -1,3 +1,4 @@
+import re
 import os
 import glob
 import backoff
@@ -63,6 +64,11 @@ def load_data(known_uids=set([])):
             for path in glob.glob(os.path.join(tempdir, f"{title_id}-chapters/*.txt")):
                 with open(path, encoding="utf-8") as infile:
                     chapter = infile.read().strip()
+                chapter = (
+                    re.sub(r"([^\n])\s*(?:\n+\s*)+([a-z])", r"\1 \2", chapter)
+                    .replace("  ", " ")
+                    .split("*** END OF THE PROJECT GUTENBERG")[0]
+                )
                 data.append(
                     {
                         "id": get_uid(chapter),
