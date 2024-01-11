@@ -84,10 +84,12 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
 ### DPO data sources
 - [airoboros 3.1](https://huggingface.co/datasets/unalignment/spicy-3.1) vs [airoboros 2.2.1](https://huggingface.co/datasets/jondurbin/airoboros-gpt4-1.4.1)
   - The creative/writing tasks from airoboros-2.2.1 were re-generated using gpt4-0314 and a custom prompt to get longer, more creative, less clichè responses for airoboros 3.1, so we can use the shorter/boring version as the "rejected" value and the rerolled response as "chosen"
+- [contextual-dpo](https://huggingface.co/datasets/jondurbin/contextual-dpo-v0.1)
+  - Contextual prompt/response dataset using the airoboros context-obedient question answering format.
 - [helpsteer](https://huggingface.co/datasets/nvidia/HelpSteer)
   - Really neat dataset provided by the folks at NVidia with human annotation across a variety of metrics.  Only items with the highest "correctness" value were used for DPO here, with the highest scoring output as "chosen" and random lower scoring value as "rejected"
-- [orca_dpo_pairs](https://huggingface.co/datasets/Intel/orca_dpo_pairs)
-  - Another interesting dataset by Intel, which provides various DPO pairs generated from prompts included in the SlimOrca dataset.
+- [distilabel_orca_dpo_pairs](https://huggingface.co/datasets/argilla/distilabel-intel-orca-dpo-pairs)
+  - Another interesting dataset, originally by Intel, enhanced by argilla with [distilabel](https://github.com/argilla-io/distilabel) which provides various DPO pairs generated from prompts included in the SlimOrca dataset.
 - [py-dpo](https://huggingface.co/datasets/jondurbin/py-dpo-v0.1)
   - Python DPO dataset (based on the SFT python_alpaca dataset above)
 - [toxic-dpo](https://huggingface.co/datasets/unalignment/toxic-dpo-v0.2)
