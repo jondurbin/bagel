@@ -142,7 +142,7 @@ def alpaca_io(tokenizer, item):
                 inputs.append("\n".join(["### Instruction: ", turn["value"].strip()]))
         else:
             inputs.append("\n".join(["### Response:", turn["value"].strip()]))
-    inputs.append("### Response:\n")
+    inputs.append("### Response:")
     return {
         "source": f"{item['source']}_alpaca",
         "input": "\n\n".join(inputs),
