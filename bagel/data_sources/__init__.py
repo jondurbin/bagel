@@ -17,10 +17,13 @@ from . import boolq
 from . import camelai
 from . import capybara
 from . import cinematika
+from . import comedy_snippets
+from . import contextual_dpo
 from . import drop
 from . import emobank
 from . import evol_instruct
 from . import gutenberg
+from . import gutenberg_dpo
 from . import helpsteer
 from . import lmsys_chat_1m
 from . import mathinstruct
@@ -30,6 +33,7 @@ from . import openbookqa
 from . import orca_dpo_pairs
 from . import pippa
 from . import piqa
+from . import pydpo
 from . import python_alpaca
 from . import rosetta_code
 from . import slimorca

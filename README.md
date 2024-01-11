@@ -90,6 +90,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Really neat dataset provided by the folks at NVidia with human annotation across a variety of metrics.  Only items with the highest "correctness" value were used for DPO here, with the highest scoring output as "chosen" and random lower scoring value as "rejected"
 - [distilabel_orca_dpo_pairs](https://huggingface.co/datasets/argilla/distilabel-intel-orca-dpo-pairs)
   - Another interesting dataset, originally by Intel, enhanced by argilla with [distilabel](https://github.com/argilla-io/distilabel) which provides various DPO pairs generated from prompts included in the SlimOrca dataset.
+- [gutenberg-dpo](https://huggingface.co/datasets/jondurbin/gutenberg-dpo-v0.1)
+  - DPO pairs meant to increase the models novel writing abilities, using public domain books from https://gutenberg.org/
 - [py-dpo](https://huggingface.co/datasets/jondurbin/py-dpo-v0.1)
   - Python DPO dataset (based on the SFT python_alpaca dataset above)
 - [toxic-dpo](https://huggingface.co/datasets/unalignment/toxic-dpo-v0.2)
