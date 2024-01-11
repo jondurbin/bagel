@@ -69,6 +69,24 @@ def load_data(known_uids=set([])):
                     .replace("  ", " ")
                     .split("*** END OF THE PROJECT GUTENBERG")[0]
                 )
+                chapter = re.sub(
+                    r"([^\n\.\!\?])\s*(?:\n+\s*)+([a-zA-Z])", r"\1 \2", chapter
+                )
+                keep = []
+                for line in chapter.splitlines():
+                    line = re.sub(
+                        r"^.{0,6}(Chapter|CHAPTER|Section|Part)( .{0,3}:|\s*[IVX]+)|^=========|^\s*\[(_Copyright|Illustration)",
+                        "",
+                        line,
+                    )
+                    if not keep:
+                        if not line.strip():
+                            continue
+                        if re.match(r"^\s*[A-Z-\.\s:;'!]+$", line):
+                            continue
+                    keep.append(line)
+
+                chapter = "\n".join(keep).replace("  ", " ")
                 data.append(
                     {
                         "id": get_uid(chapter),
