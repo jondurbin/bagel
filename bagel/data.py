@@ -1,3 +1,4 @@
+import re
 import os
 import uuid
 import random
@@ -49,7 +50,7 @@ def llama2_io(tokenizer, item):
     return {
         "source": f"{item['source']}_llama2",
         "input": llama2_prompt(tokenizer, message, chat_history, system_prompt),
-        "output": response,
+        "output": re.sub(r"(\s*\n){3,}", "\n\n", response),
     }
 
 
@@ -83,7 +84,9 @@ def chatml_io(tokenizer, item):
     return {
         "source": f"{item['source']}_chatml",
         "input": "\n".join(inputs),
-        "output": item["conversations"][-1]["value"].lstrip(),
+        "output": re.sub(
+            r"(\s*\n){3,}", "\n\n", item["conversations"][-1]["value"]
+        ).lstrip(),
     }
 
 
@@ -113,7 +116,9 @@ def vicuna_io(tokenizer, item):
     return {
         "source": f"{item['source']}_vicuna",
         "input": "\n".join(inputs),
-        "output": item["conversations"][-1]["value"].lstrip(),
+        "output": re.sub(
+            r"(\s*\n){3,}", "\n\n", item["conversations"][-1]["value"]
+        ).lstrip(),
     }
 
 
@@ -141,7 +146,9 @@ def alpaca_io(tokenizer, item):
     return {
         "source": f"{item['source']}_alpaca",
         "input": "\n\n".join(inputs),
-        "output": item["conversations"][-1]["value"].lstrip(),
+        "output": re.sub(
+            r"(\s*\n){3,}", "\n\n", item["conversations"][-1]["value"]
+        ).lstrip(),
     }
 
 
@@ -219,7 +226,7 @@ def format_io(tokenizer, dataset):
                     },
                     {
                         "from": "gpt",
-                        "value": item["chosen"],
+                        "value": re.sub(r"(\s*\n){3,}", "\n\n", item["chosen"]),
                     },
                 ],
             },
@@ -227,7 +234,7 @@ def format_io(tokenizer, dataset):
         return {
             "source": item["source"],
             "prompt": io_format["input"],
-            "chosen": item["chosen"],
+            "chosen": re.sub(r"(\s*\n){3,}", "\n\n", item["chosen"]),
             "rejected": item["rejected"],
         }
 
