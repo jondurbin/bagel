@@ -76,6 +76,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - SQL-targeted dataset, combining WikiSQL and Spider.
 - [squad_v2](https://huggingface.co/datasets/squad_v2)
   - Contextual question answering (RAG).
+- [airoboros-summarization](https://huggingface.co/datasets/mattpscott/airoboros-summarization)
+  - Combination of various summarization datasets, formatted into the airoboros context-obedient format.
 - [synthia](https://huggingface.co/datasets/migtissera/Synthia-v1.3)
   - GPT-4 generated data using advanced prompting from Migel Tissera.
 - [winogrande](https://huggingface.co/datasets/winogrande)

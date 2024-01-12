@@ -39,6 +39,7 @@ from . import rosetta_code
 from . import slimorca
 from . import sql
 from . import squad_v2
+from . import summarization
 from . import synthia
 from . import toxic
 from . import truthy

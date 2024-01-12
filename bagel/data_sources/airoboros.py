@@ -34,6 +34,8 @@ def load_data(known_uids=set([])):
     data = []
     logger.info("Finding DPO pairs...")
     for item in tqdm(dataset):
+        if item["category"] == "summarization":
+            continue
         new_id = get_uid(
             "\n".join(
                 [
