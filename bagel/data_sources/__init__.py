@@ -35,6 +35,7 @@ from . import pippa
 from . import piqa
 from . import pydpo
 from . import python_alpaca
+from . import ropes
 from . import rosetta_code
 from . import slimorca
 from . import sql

@@ -70,6 +70,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Phyiscal interaction question answering.
 - [python_alpaca](https://huggingface.co/datasets/Vezora/Tested-22k-Python-Alpaca)
   - Python instruction response pairs, validated as functional.
+- [ropes](https://huggingface.co/datasets/ropes")
+  - Reasoning Over PAragraph Effects in Situations - enhances ability to apply knowledge from a passage of text to a new situation.
 - [rosetta_code](https://huggingface.co/datasets/cakiki/rosetta-code)
   - Code problems and solutions in a variety of programming languages taken from rosettacode.org.
 - [slimorca](https://huggingface.co/datasets/Open-Orca/SlimOrca)
