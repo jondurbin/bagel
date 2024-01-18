@@ -50,6 +50,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Emotion annotations using the Valence-Arousal-Domninance scheme.
 - [evol-instruct](https://huggingface.co/datasets/WizardLM/WizardLM_evol_instruct_70k)
   - WizardLM's evol instruct 70k dataset.
+- [glaive-function-calling-v2](https://huggingface.co/datasets/glaiveai/glaive-function-calling-v2)
+  - GlaiveAI function calling dataset.
 - [gutenberg](https://www.gutenberg.org/) (plain text)
   - Books/plain text, again to make the model less boring, only a handful of examples supported by [chapterize](https://github.com/JonathanReeve/chapterize)
 - [lmsys_chat_1m](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) (only gpt-4 items, also used for DPO)
@@ -80,6 +82,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Combination of various summarization datasets, formatted into the airoboros context-obedient format.
 - [synthia](https://huggingface.co/datasets/migtissera/Synthia-v1.3)
   - GPT-4 generated data using advanced prompting from Migel Tissera.
+- whiterabbitneo [chapter 1](https://huggingface.co/datasets/WhiteRabbitNeo/WRN-Chapter-1) and [chapter 2](https://huggingface.co/datasets/WhiteRabbitNeo/WRN-Chapter-2)
+  - Offensive cybersecurity dataset by WhiteRabbitNeo/Migel Tissera
 - [winogrande](https://huggingface.co/datasets/winogrande)
   - Fill in the blank style prompts.
 

@@ -19,7 +19,16 @@ def load_data(known_uids=set([])):
                 "prompt": item["prompt"],
                 "chosen": item["chosen"],
                 "rejected": item["rejected"],
-                "conversations": None,
+                "conversations": [
+                    {
+                        "from": "human",
+                        "value": item["prompt"],
+                    },
+                    {
+                        "from": "gpt",
+                        "value": item["chosen"],
+                    },
+                ],
             }
         )
     return Dataset.from_list(data)

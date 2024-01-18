@@ -22,7 +22,7 @@ from . import contextual_dpo
 from . import drop
 from . import emobank
 from . import evol_instruct
-from . import gutenberg
+from . import glaive_func
 from . import gutenberg_dpo
 from . import helpsteer
 from . import lmsys_chat_1m
@@ -44,7 +44,7 @@ from . import synthia
 from . import toxic
 from . import truthy
 from . import ultrafeedback
-from . import winogrande
+from . import whiterabbitneo
 
 
 def decontaminate(dataset):
@@ -238,10 +238,6 @@ def load_datasets():
             dataset = dataset.remove_columns(["source"]).add_column(
                 "source", [key] * len(dataset)
             )
-
-        # Sample down the dataset vi DSIR.
-        if len(dataset) >= 75000:
-            dataset = dataset.shuffle(seed=42).select(range(50000))
         logger.success(f"{key} -- {len(dataset)} items")
         dataset = dataset.remove_columns(
             [

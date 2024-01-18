@@ -12,7 +12,7 @@ def load_data(known_uids=set([])):
     logger.info("Loading DROP train split...")
     data = []
     for item in tqdm(
-        load_dataset("drop", split="train").shuffle(seed=42).select(range(5000))
+        load_dataset("drop", split="train").shuffle(seed=42).select(range(1000))
     ):
         ordered = [item["passage"], item["question"]]
         if random.random() <= 0.5:
