@@ -8,7 +8,7 @@ from .util import get_uid
 PRIORITY = 1
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Airoboros 3.2 dataset."""
     logger.info("Loading airoboros-3.2 dataset...")
     dataset = load_dataset("jondurbin/airoboros-3.2", split="train")

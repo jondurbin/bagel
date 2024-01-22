@@ -8,7 +8,7 @@ from .util import map_conv_format, get_uid, has_refusal
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """lmsys 1 million chat dataset."""
     logger.info("Loading lmsys-chat-1m gpt-4 dataset...")
     dataset = load_dataset("lmsys/lmsys-chat-1m", split="train")

@@ -7,7 +7,7 @@ from .util import as_conversation
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """DROP training split."""
     logger.info("Loading DROP train split...")
     data = []

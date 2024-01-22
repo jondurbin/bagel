@@ -6,7 +6,7 @@ from .util import as_conversation
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """belebele training split."""
     data = []
     dataset = load_dataset("facebook/belebele")

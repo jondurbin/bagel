@@ -5,7 +5,7 @@ from .util import get_uid, has_refusal
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Orca DPO pairs dataset."""
     logger.info("Loading distilabel_orca_dpo_pairs dataset...")
     dataset = load_dataset(

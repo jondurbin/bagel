@@ -7,7 +7,7 @@ from .util import as_conversation, has_refusal
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """WizardLM evol instruct dataset"""
     logger.info("Loading WizardLM evol instruct 70k dataset...")
     dataset = load_dataset("WizardLM/WizardLM_evol_instruct_70k")

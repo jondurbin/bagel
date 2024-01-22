@@ -5,7 +5,7 @@ from .util import get_uid
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Contextual DPO pairs."""
     logger.info("Loading contextual DPO dataset...")
     dataset = load_dataset("jondurbin/contextual-dpo-v0.1", split="train")

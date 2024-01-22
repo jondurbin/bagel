@@ -8,7 +8,7 @@ from datasets import Dataset
 PRIORITY = 3
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """EmoBank dataset."""
     logger.info("Loading EmoBank dataset...")
     raw_data = requests.get(

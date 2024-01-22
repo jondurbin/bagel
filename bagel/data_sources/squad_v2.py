@@ -14,7 +14,7 @@ BAD = [
 ]
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """SquadV2 train split."""
     data = []
     logger.info("Loading SQuAD2.0 train split...")

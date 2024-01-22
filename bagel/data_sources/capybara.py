@@ -7,7 +7,7 @@ from .util import get_uid
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Capybara training split."""
     logger.info("Loading Capybara train split...")
     data = []

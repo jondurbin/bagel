@@ -218,7 +218,7 @@ def decontaminate(dataset):
     return filtered
 
 
-def load_datasets():
+def load_datasets(tokenizer=None):
     """Load all of the datasets."""
     things = {
         key: val
@@ -230,7 +230,7 @@ def load_datasets():
     all_datasets = []
     known_uids = set([])
     for key, val in sorted(things.items(), key=lambda m: m[1].PRIORITY, reverse=True):
-        dataset = val.load_data(known_uids)
+        dataset = val.load_data(known_uids, tokenizer=tokenizer)
         if "text" not in dataset.column_names:
             dataset = dataset.add_column("text", [None] * len(dataset))
         if "source" not in dataset.column_names:

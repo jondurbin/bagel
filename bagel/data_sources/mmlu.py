@@ -8,7 +8,7 @@ PRIORITY = 3
 CHOICES = ["A", "B", "C", "D", "E", "F", "G"]
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """MMLU training split."""
     data = []
     logger.info("Loading MMLU train split...")

@@ -5,7 +5,7 @@ from .util import get_uid
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Truthy DPO pairs."""
     logger.info("Loading Truthy DPO dataset...")
     dataset = load_dataset("jondurbin/truthy-dpo-v0.1", split="train")

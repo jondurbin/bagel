@@ -7,7 +7,7 @@ from .util import get_uid, has_refusal, as_conversation
 PRIORITY = 1
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """WhiteRabbitNeo dataset."""
     logger.info("Loading WhiteRabbitNeo dataset...")
     dataset = (

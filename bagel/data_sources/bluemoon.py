@@ -7,7 +7,7 @@ from datasets import Dataset
 PRIORITY = 1
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Bloomoon fandom RP dataset."""
     logger.info("Loading Bluemoon Fandom RP dataset...")
     raw_data = json.loads(

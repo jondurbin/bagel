@@ -10,7 +10,7 @@ from .util import as_conversation
 PRIORITY = 3
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Summarization dataset."""
     tokenizer = AutoTokenizer.from_pretrained(
         "mistralai/mistral-7b-v0.1", use_fast=True

@@ -54,6 +54,8 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - GlaiveAI function calling dataset.
 - [gutenberg](https://www.gutenberg.org/) (plain text)
   - Books/plain text, again to make the model less boring, only a handful of examples supported by [chapterize](https://github.com/JonathanReeve/chapterize)
+- [limarp-augmented](https://huggingface.co/datasets/grimulkan/LimaRP-augmented)
+  - Augmented and further modified version of [LimaRP](https://huggingface.co/datasets/lemonilia/LimaRP)
 - [lmsys_chat_1m](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) (only gpt-4 items, also used for DPO)
   - Chats collected by the lmsys chat arena, containing a wide variety of chats with various models.
 - [mathinstruct](https://huggingface.co/datasets/TIGER-Lab/MathInstruct)

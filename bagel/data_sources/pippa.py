@@ -8,7 +8,7 @@ from .util import has_refusal
 PRIORITY = 1
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Pippa dataset, filtered."""
     logger.info("Loading PIPPA dataset...")
     raw_data = [

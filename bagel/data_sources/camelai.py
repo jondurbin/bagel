@@ -8,7 +8,7 @@ from .util import as_conversation, has_refusal
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Various Camel-AI datasets."""
     data = []
     for expert in ["chemistry", "physics", "math", "biology"]:

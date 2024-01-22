@@ -5,7 +5,7 @@ from .util import get_uid, has_refusal
 PRIORITY = 2
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """HelpSteer dataset for DPO."""
     logger.info("Loading HelpSteer dataset...")
     dataset = load_dataset("nvidia/HelpSteer", split="train").filter(

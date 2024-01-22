@@ -7,7 +7,7 @@ from .util import get_uid, has_refusal
 PRIORITY = 1
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Synthia v1.3 dataset."""
     logger.info("Loading Synthia-v1.3 dataset...")
     dataset = load_dataset("migtissera/Synthia-v1.3")

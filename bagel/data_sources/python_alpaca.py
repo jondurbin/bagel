@@ -6,7 +6,7 @@ from .util import as_conversation, has_refusal
 PRIORITY = 1
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """Python alpaca."""
     data = []
     logger.info("Loading python alpaca...")

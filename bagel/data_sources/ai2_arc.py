@@ -7,7 +7,7 @@ from .util import as_conversation
 PRIORITY = 3
 
 
-def load_data(known_uids=set([])):
+def load_data(known_uids=set([]), **_):
     """ARC-challenge training split."""
     logger.info("Loading ai2_arc train split...")
     data = []
