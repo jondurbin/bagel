@@ -19,15 +19,14 @@ from . import capybara
 from . import cinematika
 from . import comedy_snippets
 from . import contextual_dpo
-from . import drop
 from . import emobank
 from . import evol_instruct
 from . import glaive_func
 from . import gutenberg_dpo
 from . import helpsteer
+from . import limarp
 from . import lmsys_chat_1m
 from . import mathinstruct
-from . import mmlu
 from . import natural_instructions
 from . import openbookqa
 from . import orca_dpo_pairs

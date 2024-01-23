@@ -18,7 +18,7 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
 
 ### SFT data sources
 
-*Yes, you will see benchmark names in the list, but this only uses the train splits, and a decontamination by cosine similarity is performed at the end as a sanity check*
+*Only train splits are used, and a decontamination by cosine similarity is performed at the end as a sanity check against common benchmarks.  If you don't know the difference between train and test, please learn.*
 
 - [ai2_arc](https://huggingface.co/datasets/ai2_arc)
   - Abstraction and reasoning dataset, useful in measuring "intelligence" to a certain extent.
@@ -44,8 +44,6 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Multi-turn dataset used to create the capybara models.
 - [cinematika](https://huggingface.co/datasets/jondurbin/cinematika-v0.1) (instruction and plain text)
   - RP-style data synthesized from movie scripts so the model isn't quite as boring as it otherwise would be.
-- [drop](https://huggingface.co/datasets/drop)
-  - More reading comprehension.
 - [emobank](https://github.com/JULIELab/EmoBank)
   - Emotion annotations using the Valence-Arousal-Domninance scheme.
 - [evol-instruct](https://huggingface.co/datasets/WizardLM/WizardLM_evol_instruct_70k)
@@ -58,10 +56,10 @@ This means that if an instruction is in data source "Foo" with confidence 4 as w
   - Augmented and further modified version of [LimaRP](https://huggingface.co/datasets/lemonilia/LimaRP)
 - [lmsys_chat_1m](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) (only gpt-4 items, also used for DPO)
   - Chats collected by the lmsys chat arena, containing a wide variety of chats with various models.
+- [lollms](https://huggingface.co/datasets/ParisNeo/lollms_aware_dataset)
+  - LoLLMs question answering dataset by ParisNeo, with helpful question answer pairs for using LoLLMs.
 - [mathinstruct](https://huggingface.co/datasets/TIGER-Lab/MathInstruct)
   - Composite dataset with a variety of math-related tasks and problem/question formats.
-- [mmlu](https://huggingface.co/datasets/cais/mmlu)
-  - Massive Multitask Language Understanding - a wide variety of questions about various subject matters.
 - [natural_instructions](https://huggingface.co/datasets/Muennighoff/natural-instructions)
   - Millions of instructions from 1600+ task categories (sampled down substantially, stratified by task type)
 - [openbookqa](https://huggingface.co/datasets/openbookqa)
@@ -142,41 +140,14 @@ USER: {instruction}
 ASSISTANT: 
 ```
 
-### ChatML (sort of)
+### ChatML
 
-I don't really understand the point of having special tokens for `<|im_start|>` and `<|im_end|>`, because in practice they just act as BOS and EOS tokens (but, please correct me if I'm wrong).
+This format is digital cancer, but it's common so I included it.
 
-So, instead of:
 ```text
 {bos}<|im_start|>{role}
-{text}
-<|im_end|>{eos}
+{text}<|im_end|>
 ```
-
-I just changed it to:
-```text
-{bos}{role}
-{text}
-{eos}
-```
-
-In practice, this would mean tokenization code like such:
-```python
-tokenizer = AutoTokenizer.from_pretrained('mistralai/mistral-7b-v0.1')
-
-input_str = f"""system
-You are a goat.
-{tokenizer.eos_token}
-{tokenizer.bos_token}user
-Tell me how to fry an egg.
-{tokenizer.eos_token}
-{tokenizer.bos_token}assistant
-"""
-
-inputs = tokenizer(input_str, return_tensors="pt")
-```
-
-If you *really* want to use `<|im_start|>` and `<|im_end|>`, just update your `tokenizer_config.json` to use `<|im_start|>` instead of `<s>` and `<|im_end|>` instead of `</s>`.  And if you still don't like what I've done to this chat-ml-ish format, feel free to cry into your pillow or fork the code and do a new fine-tune.
 
 ### Llama-2 chat
 
