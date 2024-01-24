@@ -219,6 +219,7 @@ accelerate launch bagel/tune/sft.py \
   --skip_excess_length False \
   --ddp_find_unused_parameters False \
   --use_flash_attention_2 \
+  --group_by_length True \
   --deepspeed deepspeed.json
 ```
 
