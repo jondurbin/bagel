@@ -255,7 +255,7 @@ def train():
                 module = module.to(torch.bfloat16)
             if "norm" in name:
                 module = module.to(torch.bfloat16)
-            if "lm_head" in name or "embed_tokens" in name:
+            if "lm_head" in name or "embed" in name or "output" in name:
                 if hasattr(module, "weight"):
                     if module.weight.dtype == torch.float32:
                         module = module.to(torch.bfloat16)
