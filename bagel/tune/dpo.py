@@ -133,6 +133,31 @@ def train():
     parser = HfArgumentParser(ScriptArguments)
     script_args = parser.parse_args_into_dataclasses()[0]
 
+    training_args = TrainingArguments(
+        per_device_train_batch_size=script_args.per_device_train_batch_size,
+        per_device_eval_batch_size=script_args.per_device_train_batch_size,
+        num_train_epochs=script_args.num_train_epochs,
+        remove_unused_columns=False,
+        gradient_accumulation_steps=script_args.gradient_accumulation_steps,
+        learning_rate=script_args.learning_rate,
+        evaluation_strategy="steps",
+        logging_first_step=True,
+        logging_steps=1,
+        eval_steps=script_args.eval_steps,
+        output_dir=script_args.workdir,
+        optim="rmsprop",
+        warmup_ratio=script_args.warmup_ratio,
+        report_to=script_args.report_to,
+        bf16=True,
+        gradient_checkpointing=script_args.gradient_checkpointing,
+        neftune_noise_alpha=script_args.neftune_noise_alpha,
+        deepspeed=script_args.deepspeed,
+        save_strategy="steps",
+        save_steps=script_args.save_steps,
+        save_total_limit=script_args.save_total_limit,
+        ddp_find_unused_parameters=False,
+    )
+
     if torch.cuda.is_available():
         n_gpus = torch.cuda.device_count()
     max_memory = f"{script_args.max_memory}MB"
@@ -173,24 +198,30 @@ def train():
             name for name, buffer in model.named_buffers() if buffer.dtype == torch.bool
         ]
 
-    model_ref = AutoModelForCausalLM.from_pretrained(
-        script_args.model_name_or_path,
-        load_in_4bit=script_args.four_bit,
-        low_cpu_mem_usage=not script_args.deepspeed,
-        quantization_config=bnb_config,
-        trust_remote_code=True,
-        attn_implementation=script_args.attn_implementation,
-        torch_dtype=torch.bfloat16,
-        max_memory=None if script_args.deepspeed else max_memory,
-        device_map=None if script_args.deepspeed else device_map,
-    )
-    model_ref.config.use_cache = False
+    # Only instantiate a reference model if we aren't using PEFT.
+    model_ref = None
+    if not script_args.adapter_path:
+        model_ref = AutoModelForCausalLM.from_pretrained(
+            script_args.model_name_or_path,
+            load_in_4bit=script_args.four_bit,
+            low_cpu_mem_usage=not script_args.deepspeed,
+            quantization_config=bnb_config,
+            trust_remote_code=True,
+            attn_implementation=script_args.attn_implementation,
+            torch_dtype=torch.bfloat16,
+            max_memory=None if script_args.deepspeed else max_memory,
+            device_map=None if script_args.deepspeed else device_map,
+        )
+        model_ref.config.use_cache = False
+
     if script_args.four_bit:
         model = prepare_model_for_kbit_training(
             model, use_gradient_checkpointing=script_args.gradient_checkpointing
         )
 
     for mod in (model, model_ref):
+        if not mod:
+            continue
         for name, module in mod.named_modules():
             if isinstance(module, LoraLayer):
                 module = module.to(torch.bfloat16)
@@ -210,11 +241,9 @@ def train():
 
     if script_args.adapter_path:
         model = PeftModel.from_pretrained(
-            model, script_args.adapter_path, is_trainable=True
+            model, script_args.adapter_path, is_trainable=True, adapter_name="_train_adapter"
         )
-        model_ref = PeftModel.from_pretrained(
-            model_ref, script_args.adapter_path, is_trainable=True
-        )
+        model.load_adapter(script_args.adapter_path, adapter_name="_ref_adapter")
 
     tokenizer = AutoTokenizer.from_pretrained(
         script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer
@@ -228,31 +257,6 @@ def train():
     train_dataset = full_dataset["train"]
     eval_dataset = full_dataset["test"]
 
-    training_args = TrainingArguments(
-        per_device_train_batch_size=script_args.per_device_train_batch_size,
-        per_device_eval_batch_size=script_args.per_device_train_batch_size,
-        num_train_epochs=script_args.num_train_epochs,
-        remove_unused_columns=False,
-        gradient_accumulation_steps=script_args.gradient_accumulation_steps,
-        learning_rate=script_args.learning_rate,
-        evaluation_strategy="steps",
-        logging_first_step=True,
-        logging_steps=1,
-        eval_steps=script_args.eval_steps,
-        output_dir=script_args.workdir,
-        optim="rmsprop",
-        warmup_ratio=script_args.warmup_ratio,
-        report_to=script_args.report_to,
-        bf16=True,
-        gradient_checkpointing=script_args.gradient_checkpointing,
-        neftune_noise_alpha=script_args.neftune_noise_alpha,
-        deepspeed=script_args.deepspeed,
-        save_strategy="steps",
-        save_steps=script_args.save_steps,
-        save_total_limit=script_args.save_total_limit,
-        ddp_find_unused_parameters=False,
-    )
-
     dpo_trainer = DPOTrainer(
         model,
         model_ref,
@@ -265,13 +269,21 @@ def train():
         max_target_length=script_args.max_target_length,
         max_prompt_length=script_args.max_prompt_length,
         generate_during_eval=False,
+        model_adapter_name="_train_adapter" if args.adapter_path else None,
+        ref_adapter_name="_ref_adapter" if args.adapter_path else None,
     )
 
     dpo_trainer.train()
 
     dpo_trainer.accelerator.wait_for_everyone()
-    state_dict = dpo_trainer.accelerator.get_state_dict(dpo_trainer.deepspeed)
-    unwrapped_model = dpo_trainer.accelerator.unwrap_model(dpo_trainer.deepspeed)
+    state_dict = None
+    unwrapped_model = None
+    if script_args.deepspeed:
+        state_dict = dpo_trainer.accelerator.get_state_dict(dpo_trainer.deepspeed)
+        unwrapped_model = dpo_trainer.accelerator.unwrap_model(dpo_trainer.deepspeed)
+    else:
+        state_dict = trainer.accelerator.get_state_dict(trainer.model)
+        unwrapped_model = trainer.accelerator.unwrap_model(trainer.model)
     if dpo_trainer.accelerator.is_main_process:
         unwrapped_model.save_pretrained(
             script_args.output_dir, state_dict=state_dict, max_shard_size="4GB"
