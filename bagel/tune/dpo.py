@@ -10,6 +10,7 @@ from transformers import (
     HfArgumentParser,
     TrainingArguments,
     BitsAndBytesConfig,
+    AddedToken,
 )
 from peft import prepare_model_for_kbit_training, PeftModel
 from peft.tuners.lora import LoraLayer
@@ -127,6 +128,7 @@ class ScriptArguments:
         default=3, metadata={"help": "maximum number of checkpoints to save"}
     )
     max_memory: int = field(default=80000, metadata={"help": "max vram per gpu"})
+    add_chatml_tokens: bool = field(default=False, metadata={"help": "add chatml tokens, if using a base model without them"})
 
 
 def train():
@@ -214,6 +216,35 @@ def train():
         )
         model_ref.config.use_cache = False
 
+    tokenizer = AutoTokenizer.from_pretrained(
+        script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer, trust_remote_code=True
+    )
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    if script_args.add_chatml_tokens:
+        tokenizer.add_tokens(
+            [
+                AddedToken("<|im_start|>", special=True, normalized=False),
+                AddedToken("<|im_end|>", special=True, normalized=False),
+            ]
+        )
+        if len(tokenizer) % 64 != 0:
+            tokens = [
+                AddedToken(
+                    f"<|special_{idx}|>", special=True, normalized=False
+                )
+                for idx in range((len(tokenizer) // 64 + 1) * 64 - len(tokenizer))
+            ]
+            tokenizer.add_tokens(tokens)
+        num_new_tokens = len(tokenizer) - len(model.get_input_embeddings().weight.data)
+        if num_new_tokens > 0:
+            model.resize_token_embeddings(len(tokenizer))
+            input_embeddings_data = model.get_input_embeddings().weight.data
+            output_embeddings_data = model.get_output_embeddings().weight.data
+            input_embeddings_data[-num_new_tokens:] = 0.0
+            output_embeddings_data[-num_new_tokens:] = 0.0
+
     if script_args.four_bit:
         model = prepare_model_for_kbit_training(
             model, use_gradient_checkpointing=script_args.gradient_checkpointing
@@ -269,8 +300,8 @@ def train():
         max_target_length=script_args.max_target_length,
         max_prompt_length=script_args.max_prompt_length,
         generate_during_eval=False,
-        model_adapter_name="_train_adapter" if args.adapter_path else None,
-        ref_adapter_name="_ref_adapter" if args.adapter_path else None,
+        model_adapter_name="_train_adapter" if script_args.adapter_path else None,
+        ref_adapter_name="_ref_adapter" if script_args.adapter_path else None,
     )
 
     dpo_trainer.train()
