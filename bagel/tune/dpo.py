@@ -184,8 +184,6 @@ def train():
     model = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
         low_cpu_mem_usage=not script_args.deepspeed,
-        load_in_4bit=script_args.four_bit,
-        load_in_8bit=False,
         quantization_config=bnb_config,
         trust_remote_code=True,
         attn_implementation=script_args.attn_implementation,
@@ -205,7 +203,6 @@ def train():
     if not script_args.adapter_path:
         model_ref = AutoModelForCausalLM.from_pretrained(
             script_args.model_name_or_path,
-            load_in_4bit=script_args.four_bit,
             low_cpu_mem_usage=not script_args.deepspeed,
             quantization_config=bnb_config,
             trust_remote_code=True,
@@ -275,12 +272,6 @@ def train():
             model, script_args.adapter_path, is_trainable=True, adapter_name="_train_adapter"
         )
         model.load_adapter(script_args.adapter_path, adapter_name="_ref_adapter")
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer
-    )
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
 
     full_dataset = Dataset.from_parquet(script_args.dataset).train_test_split(
         test_size=script_args.eval_dataset_size
