@@ -304,8 +304,8 @@ def train():
         state_dict = dpo_trainer.accelerator.get_state_dict(dpo_trainer.deepspeed)
         unwrapped_model = dpo_trainer.accelerator.unwrap_model(dpo_trainer.deepspeed)
     else:
-        state_dict = trainer.accelerator.get_state_dict(trainer.model)
-        unwrapped_model = trainer.accelerator.unwrap_model(trainer.model)
+        state_dict = dpo_trainer.accelerator.get_state_dict(dpo_trainer.model)
+        unwrapped_model = dpo_trainer.accelerator.unwrap_model(dpo_trainer.model)
     if dpo_trainer.accelerator.is_main_process:
         unwrapped_model.save_pretrained(
             script_args.output_dir, state_dict=state_dict, max_shard_size="4GB"
