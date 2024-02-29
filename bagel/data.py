@@ -76,8 +76,10 @@ def chatml_io(tokenizer, item):
             role = "user"
         elif role == "gpt":
             role = "assistant"
-        inputs.append(f"<|im_start|>{role}\n{turn['value'].lstrip()}<|im_end|>")
-    inputs.append("<|im_start|>assistant\n")
+        inputs.append(
+            f"{tokenizer.bos_token}{role}\n{turn['value'].lstrip()}{tokenizer.eos_token}"
+        )
+    inputs.append(f"{tokenizer.bos_token}assistant\n")
     return {
         "source": f"{item['source']}_chatml",
         "input": "\n".join(inputs),

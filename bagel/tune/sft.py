@@ -438,9 +438,9 @@ def get_accelerate_model(args, checkpoint_dir):
         cache_dir=args.cache_dir,
         use_fast=args.use_fast_tokenizer,
         padding_side=args.padding_side,
-        tokenizer_type="llama"
-        if "llama" in args.model_name_or_path
-        else None,  # Needed for HF name change
+        tokenizer_type=(
+            "llama" if "llama" in args.model_name_or_path else None
+        ),  # Needed for HF name change
         trust_remote_code=args.trust_remote_code,
         **extra_tokens,
     )
@@ -1265,9 +1265,9 @@ def train():
                         references=subjects[subject]["refs"],
                         predictions=subjects[subject]["preds"],
                     )["accuracy"]
-                    results[
-                        f"mmlu_{args.mmlu_split}_accuracy_{subject}"
-                    ] = subject_score
+                    results[f"mmlu_{args.mmlu_split}_accuracy_{subject}"] = (
+                        subject_score
+                    )
                     subject_scores.append(subject_score)
                 results[f"mmlu_{args.mmlu_split}_accuracy"] = np.mean(subject_scores)
                 trainer.log(results)

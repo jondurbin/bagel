@@ -27,6 +27,7 @@ from . import helpsteer
 from . import limarp
 from . import lmsys_chat_1m
 from . import mathinstruct
+from . import mmlu
 from . import natural_instructions
 from . import openbookqa
 from . import orca_dpo_pairs
@@ -158,7 +159,9 @@ def decontaminate(dataset):
     logger.info(
         "Removing contaminated values -- this is going to take a long time, go find a snack or something..."
     )
-    index = faiss.index_cpu_to_all_gpus(index)
+
+    ### XXX this doesn't work on many GPUs, leave on CPU for now...
+    # index = faiss.index_cpu_to_all_gpus(index)
 
     # Filter for contamination, in batches -- if we don't use batches, the
     # performance of faiss is quite slow, particularly on CPU.

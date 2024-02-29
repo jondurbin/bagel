@@ -128,7 +128,10 @@ class ScriptArguments:
         default=3, metadata={"help": "maximum number of checkpoints to save"}
     )
     max_memory: int = field(default=80000, metadata={"help": "max vram per gpu"})
-    add_chatml_tokens: bool = field(default=False, metadata={"help": "add chatml tokens, if using a base model without them"})
+    add_chatml_tokens: bool = field(
+        default=False,
+        metadata={"help": "add chatml tokens, if using a base model without them"},
+    )
 
 
 def train():
@@ -214,7 +217,9 @@ def train():
         model_ref.config.use_cache = False
 
     tokenizer = AutoTokenizer.from_pretrained(
-        script_args.model_name_or_path, use_fast=script_args.use_fast_tokenizer, trust_remote_code=True
+        script_args.model_name_or_path,
+        use_fast=script_args.use_fast_tokenizer,
+        trust_remote_code=True,
     )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -228,9 +233,7 @@ def train():
         )
         if len(tokenizer) % 64 != 0:
             tokens = [
-                AddedToken(
-                    f"<|special_{idx}|>", special=True, normalized=False
-                )
+                AddedToken(f"<|special_{idx}|>", special=True, normalized=False)
                 for idx in range((len(tokenizer) // 64 + 1) * 64 - len(tokenizer))
             ]
             tokenizer.add_tokens(tokens)
@@ -269,7 +272,10 @@ def train():
 
     if script_args.adapter_path:
         model = PeftModel.from_pretrained(
-            model, script_args.adapter_path, is_trainable=True, adapter_name="_train_adapter"
+            model,
+            script_args.adapter_path,
+            is_trainable=True,
+            adapter_name="_train_adapter",
         )
         model.load_adapter(script_args.adapter_path, adapter_name="_ref_adapter")
 
