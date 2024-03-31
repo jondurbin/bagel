@@ -265,7 +265,7 @@ def load_datasets(tokenizer=None):
 if __name__ == "__main__":
     dataset = load_datasets()
     print(dataset)
-    dataset.to_parquet("bagel-raw-v0.4.parquet")
+    dataset.to_parquet("bagel-raw-v0.5.parquet")
     decontaminated = decontaminate(dataset)
     print(decontaminated)
-    decontaminated.to_parquet("bagel-clean-v0.4.parquet")
+    decontaminated.to_parquet("bagel-clean-v0.5.parquet")

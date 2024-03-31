@@ -320,28 +320,28 @@ def format_io(tokenizer, dataset):
 
 def get_or_create_datasets(tokenizer):
     """Get or create the SFT/DPO datasets."""
-    if os.path.exists("bagel-input-output-v0.4.parquet"):
+    if os.path.exists("bagel-input-output-v0.5.parquet"):
         return (
-            Dataset.from_parquet("bagel-input-output-v0.4.parquet"),
-            Dataset.from_parquet("bagel-dpo-v0.4.parquet"),
+            Dataset.from_parquet("bagel-input-output-v0.5.parquet"),
+            Dataset.from_parquet("bagel-dpo-v0.5.parquet"),
         )
     dataset = None
-    if os.path.exists("bagel-clean-v0.4.parquet"):
-        dataset = Dataset.from_parquet("bagel-clean-v0.4.parquet")
+    if os.path.exists("bagel-clean-v0.5.parquet"):
+        dataset = Dataset.from_parquet("bagel-clean-v0.5.parquet")
     else:
-        if os.path.exists("bagel-raw-v0.4.parquet"):
-            dataset = decontaminate(Dataset.from_parquet("bagel-raw-v0.4.parquet"))
-            dataset.to_parquet("bagel-clean-v0.4.parquet")
+        if os.path.exists("bagel-raw-v0.5.parquet"):
+            dataset = decontaminate(Dataset.from_parquet("bagel-raw-v0.5.parquet"))
+            dataset.to_parquet("bagel-clean-v0.5.parquet")
         else:
             raw_dataset = load_datasets(tokenizer)
-            raw_dataset.to_parquet("bagel-raw-v0.4.parquet")
+            raw_dataset.to_parquet("bagel-raw-v0.5.parquet")
             dataset = decontaminate(raw_dataset)
-            dataset.to_parquet("bagel-clean-v0.4.parquet")
+            dataset.to_parquet("bagel-clean-v0.5.parquet")
 
     # Split the raw dataset into SFT data and DPO data.
     sft, dpo = format_io(tokenizer, dataset)
-    sft.to_parquet("bagel-input-output-v0.4.parquet")
-    dpo.to_parquet("bagel-dpo-v0.4.parquet")
+    sft.to_parquet("bagel-input-output-v0.5.parquet")
+    dpo.to_parquet("bagel-dpo-v0.5.parquet")
     return sft, dpo
 
 
