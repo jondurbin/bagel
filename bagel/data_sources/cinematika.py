@@ -61,7 +61,7 @@ def load_data(known_uids=set([]), **_):
 
     # Director (for NPC <-> NPC conversations).
     logger.info("Loading Cinematika v0.1 dataset -- director...")
-    memories = load_dataset(
+    director = load_dataset(
         "jondurbin/cinematika-v0.1", data_files=["director.parquet"], split="train"
     ).map(
         lambda item: {
@@ -84,7 +84,7 @@ def load_data(known_uids=set([]), **_):
             "text": None,
         }
     )
-    return concatenate_datasets([Dataset.from_list(data), memories, actions])
+    return concatenate_datasets([Dataset.from_list(data), memories, director, actions])
 
 
 if __name__ == "__main__":
