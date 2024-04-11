@@ -74,7 +74,7 @@ def load_data(known_uids=set([]), **_):
 
     # Inline actions.
     logger.info("Loading Cinematika v0.1 dataset -- actions...")
-    memories = load_dataset(
+    actions = load_dataset(
         "jondurbin/cinematika-v0.1", data_files=["actions.parquet"], split="train"
     ).map(
         lambda item: {
@@ -84,7 +84,7 @@ def load_data(known_uids=set([]), **_):
             "text": None,
         }
     )
-    return concatenate_datasets([Dataset.from_list(data), memories])
+    return concatenate_datasets([Dataset.from_list(data), memories, actions])
 
 
 if __name__ == "__main__":
